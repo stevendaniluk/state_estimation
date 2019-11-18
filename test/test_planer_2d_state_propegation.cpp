@@ -5,16 +5,6 @@
 using namespace state_estimation;
 using namespace planer_2d;
 
-TEST(Planer2DStatePropegation, FailsWithNonEmptyControl) {
-    double dt = 0.2;
-    Eigen::VectorXd u(1);
-    Eigen::VectorXd x(state::DIMS);
-    x << 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 0.111, 0.222;
-
-    system_models::Planer2DStatePropegation model;
-    EXPECT_DEATH(model.update(x, u, dt), "");
-}
-
 TEST(Planer2DStatePropegation, LinearAccelerationIsDirectlyCopied) {
     double dt = 0.2;
     Eigen::VectorXd x(state::DIMS);
