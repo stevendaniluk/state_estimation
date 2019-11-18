@@ -1,0 +1,82 @@
+#pragma once
+
+#include <state_estimation/filters/filter_base.h>
+#include <state_estimation/measurement_models/nonlinear_measurement_model.h>
+#include <state_estimation/system_models/nonlinear_system_model.h>
+
+namespace state_estimation {
+
+// UKF
+//
+// Implements an Unscented Kalman Filter.
+//
+// This class simply provides the update equations for the prediction and correction steps in a
+// UKF.
+class UKF : public FilterBase<system_models::NonlinearSystemModel,
+                              measurement_models::NonlinearMeasurementModel> {
+  public:
+    UKF(system_models::NonlinearSystemModel* system_model);
+
+    UKF(system_models::NonlinearSystemModel* system_model, const Eigen::VectorXd& x,
+        const Eigen::MatrixXd& cov, double timestamp);
+
+    // setSigmaPointParameters
+    //
+    // Defines the sigma point parameters used for the unscented transform.
+    //
+    // @param alpha: Scaling parameter for sigma points
+    // @param kappa: Scaling parameter for sigma points
+    // @param beta: Distribution parameter
+    void setSigmaPointParameters(double alpha, double kappa = 0, double beta = 2);
+
+  protected:
+    // initializeSigmaPointParameters
+    //
+    // Sets the sigma point parameters to some default values
+    void initializeSigmaPointParameters();
+
+    // myPredict
+    //
+    // Provides the implementation of the prediction step for an UKF.
+    void myPredict(double dt) override;
+    void myPredict(const Eigen::VectorXd& u, double dt) override;
+
+    // myPredict
+    //
+    // Provides the implementation of the correction step for an UKF.
+    void myCorrect(const Eigen::VectorXd& z,
+                   measurement_models::NonlinearMeasurementModel* model) override;
+
+    // How many sigma points we have (2n * 1)
+    uint32_t num_sigma_pts_;
+    // Coefficient used in sigma point offsets
+    double lambda_;
+    // Weights used for updating the mean estimate
+    Eigen::VectorXd w_mean_;
+    // Weights used for updating the covariance estimate
+    Eigen::VectorXd w_cov_;
+
+  private:
+    // UKFPredictionUpdate
+    //
+    // Helper to update the state and covariance via the UKF update equations.
+    //
+    // @param dt: Time delta
+    // @param control: When true, a control will be processed
+    // @param u: Control vector
+    void UKFPredictionUpdate(double dt, bool control, Eigen::VectorXd u = Eigen::VectorXd());
+
+    // updateSystemModel
+    //
+    // Helper for updating the system model that can provide the same interface regardless of
+    // whether a control is used or not
+    //
+    // @param x: State to update with
+    // @param dt: Time delta
+    // @param control: When true, a control will be processed
+    // @param u: Control vector
+    void updateSystemModel(const Eigen::VectorXd& x, double dt, bool control,
+                           Eigen::VectorXd u = Eigen::VectorXd());
+};
+
+}  // namespace state_estimation
