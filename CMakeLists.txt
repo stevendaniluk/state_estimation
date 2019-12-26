@@ -1,9 +1,11 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.10.0)
 project(state_estimation)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Eigen3 REQUIRED)
 
-option(STATE_ESTIMATION_BUILD_TEST "Build the state_estimation unit tests" ON)
 option(STATE_ESTIMATION_BUILD_GTEST "Build google test library for unit tests" OFF)
 
 include_directories(
@@ -48,80 +50,88 @@ install(DIRECTORY
 #############
 ## Testing ##
 #############
-if(STATE_ESTIMATION_BUILD_TEST MATCHES ON)
-  if(STATE_ESTIMATION_BUILD_GTEST MATCHES ON)
-    add_subdirectory(/usr/src/googletest gtest)
+
+include(CTest)
+if(BUILD_TESTING MATCHES ON)
+
+  # Try to get GTest
+  find_package(GTest)
+  if(NOT GTest_FOUND)
+    if(STATE_ESTIMATION_BUILD_GTEST MATCHES ON)
+      message("-- Will build gtest from /usr/src/googletest")
+      add_subdirectory(/usr/src/googletest gtest)
+    endif()
   endif()
 
   # Unit test for transformations utilities
   add_executable(test_transformation_utilities test/test_transformation_utilities.cpp)
-  add_test(NAME test_transformation_utilities COMMAND test_transformation_utilities)
   target_link_libraries(test_transformation_utilities
     gtest_main
     state_estimation
   )
+  gtest_discover_tests(test_transformation_utilities)
 
   # Unit test for imu utilities
   add_executable(test_imu_utilities test/test_imu_utilities.cpp)
-  add_test(NAME test_imu_utilities COMMAND test_imu_utilities)
   target_link_libraries(test_imu_utilities
     gtest_main
     state_estimation
   )
+  gtest_discover_tests(test_imu_utilities)
 
   # Unit test planer 2d state propegation model
   add_executable(test_planer_2d_state_propegation test/test_planer_2d_state_propegation.cpp)
-  add_test(NAME test_planer_2d_state_propegation COMMAND test_planer_2d_state_propegation)
   target_link_libraries(test_planer_2d_state_propegation
     gtest_main
     state_estimation
   )
+  gtest_discover_tests(test_planer_2d_state_propegation)
 
   # Unit test planer 2d odometry measurement model
   add_executable(test_planer_2d_nh_odometry_measurement_model test/test_planer_2d_nh_odometry_measurement_model.cpp)
-  add_test(NAME test_planer_2d_nh_odometry_measurement_model COMMAND test_planer_2d_nh_odometry_measurement_model)
   target_link_libraries(test_planer_2d_nh_odometry_measurement_model
     gtest_main
     state_estimation
   )
+  gtest_discover_tests(test_planer_2d_nh_odometry_measurement_model)
 
   # Unit test planer 2d imu measurement model
   add_executable(test_planer_2d_imu_measurement_model test/test_planer_2d_imu_measurement_model.cpp)
-  add_test(NAME test_planer_2d_imu_measurement_model COMMAND test_planer_2d_imu_measurement_model)
   target_link_libraries(test_planer_2d_imu_measurement_model
     gtest_main
     state_estimation
   )
+  gtest_discover_tests(test_planer_2d_imu_measurement_model)
 
   # Unit test for the base filter
   add_executable(test_filter_base test/test_filter_base.cpp)
-  add_test(NAME test_filter_base COMMAND test_filter_base)
   target_link_libraries(test_filter_base
     gtest_main
     state_estimation
   )
+  gtest_discover_tests(test_filter_base)
 
   # Unit test for the Kalman filter
   add_executable(test_kalman_filter test/test_kalman_filter.cpp)
-  add_test(NAME test_kalman_filter COMMAND test_kalman_filter)
   target_link_libraries(test_kalman_filter
     gtest_main
     state_estimation
   )
+  gtest_discover_tests(test_kalman_filter)
 
   # Unit test for the EKF
   add_executable(test_ekf test/test_ekf.cpp)
-  add_test(NAME test_ekf COMMAND test_ekf)
   target_link_libraries(test_ekf
     gtest_main
     state_estimation
   )
+  gtest_discover_tests(test_ekf)
 
   # Unit test for the UKF
   add_executable(test_ukf test/test_ukf.cpp)
-  add_test(NAME test_ukf COMMAND test_ukf)
   target_link_libraries(test_ukf
     gtest_main
     state_estimation
   )
+  gtest_discover_tests(test_ukf)
 endif()
