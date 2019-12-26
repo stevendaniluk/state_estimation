@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 
 namespace state_estimation {
 
@@ -50,6 +51,11 @@ class SystemModel {
     // @param new_R: New process covariance to use
     void setR(const Eigen::MatrixXd& new_R);
 
+    // setTf
+    //
+    // @param tf: Transformation from the control frame to the state frame
+    void setTf(const Eigen::Isometry3d& tf);
+
     // stateSize
     //
     // @return: Number of state variables
@@ -71,6 +77,8 @@ class SystemModel {
     uint32_t control_dims_;
     // Process covariance
     Eigen::MatrixXd R_;
+    // Transform from the control frame to the state frame
+    Eigen::Isometry3d tf_;
 };
 
 }  // namespace state_estimation

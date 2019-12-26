@@ -6,7 +6,8 @@ namespace state_estimation {
 SystemModel::SystemModel(uint32_t n, uint32_t m)
     : state_dims_(n)
     , control_dims_(m)
-    , R_(Eigen::MatrixXd::Zero(n, n)) {}
+    , R_(Eigen::MatrixXd::Zero(n, n))
+    , tf_(Eigen::Isometry3d::Identity()) {}
 
 uint32_t SystemModel::stateSize() const {
     return state_dims_;
@@ -34,6 +35,10 @@ Eigen::MatrixXd SystemModel::R() const {
 void SystemModel::setR(const Eigen::MatrixXd& new_R) {
     assert(new_R.rows() == R_.rows() && new_R.cols() == R_.cols());
     R_ = new_R;
+}
+
+void SystemModel::setTf(const Eigen::Isometry3d& tf) {
+    tf_ = tf;
 }
 
 }  // namespace state_estimation
