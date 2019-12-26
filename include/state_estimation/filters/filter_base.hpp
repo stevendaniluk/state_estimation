@@ -33,8 +33,8 @@ void FilterBase<SysT, MeasT>::initialize(const Eigen::VectorXd& x, const Eigen::
 
 #ifdef DEBUG_STATE_ESTIMATION
     std::cout << "Filter state initialized to: t=" << std::to_string(filter_state_.timestamp)
-              << "s, x=[" << filter_state_.x.transpose() << "], covariance=" << std::endl
-              << filter_state_.covariance << std::endl;
+              << "s, x=" << printMatrix(filter_state_.x) << ", covariance=" << std::endl
+              << printMatrix(filter_state_.covariance) << std::endl;
 #endif
 }
 
@@ -300,6 +300,14 @@ bool FilterBase<SysT, MeasT>::rewindHistory(double timestamp,
 }
 
 template <typename SysT, typename MeasT>
+std::string FilterBase<SysT, MeasT>::printMatrix(const Eigen::MatrixXd& mat) {
+    std::ostringstream stream;
+    stream << ((mat.cols() > 1) ? mat : mat.transpose())
+                  .format(Eigen::IOFormat(6, 0, ", ", "\n", "[", "]"));
+    return stream.str();
+}
+
+template <typename SysT, typename MeasT>
 void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
     if (params_.rewind_history) {
         history_.push_back(filter_state_);
@@ -308,9 +316,13 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
     const double dt = input.timestamp - filter_state_.timestamp;
     if (input.is_control) {
 #ifdef DEBUG_STATE_ESTIMATION
-        std::cout << "Applying predicition for timestamp " << std::to_string(input.timestamp)
-                  << "s (dt=" << dt << ") with control u=[" << input.data.transpose() << "]"
-                  << std::endl;
+        std::cout << "Applying prediction:" << std::endl
+                  << "t=" << std::to_string(input.timestamp) << "s (dt=" << std::to_string(dt)
+                  << ")" << std::endl
+                  << "u=" << printMatrix(input.data) << std::endl
+                  << "x=" << printMatrix(filter_state_.x) << std::endl
+                  << "covariance=" << std::endl
+                  << printMatrix(filter_state_.covariance) << std::endl;
 #endif
 
         if (input.data.size() > 0) {
@@ -323,7 +335,8 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
             // Need to first project the state forward to the measurement time
 
 #ifdef DEBUG_STATE_ESTIMATION
-            std::cout << "Advancing state by " << dt << "s before applying correction" << std::endl;
+            std::cout << "Advancing state x=" << printMatrix(filter_state_.x) << " by " << dt
+                      << "s before applying correction" << std::endl;
 #endif
             myPredict(dt);
             if (params_.constrain_angles) {
@@ -332,10 +345,13 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
         }
 
 #ifdef DEBUG_STATE_ESTIMATION
-        std::cout << "Applying correction for timestamp " << std::to_string(input.timestamp)
-                  << "s with measurement z=[" << input.data.transpose() << "], and covariance"
-                  << std::endl
-                  << input.covariance << std::endl;
+        std::cout << "Applying measurement:" << std::endl
+                  << "t=" << std::to_string(input.timestamp) << "s (dt=" << std::to_string(dt)
+                  << ")" << std::endl
+                  << "z=" << printMatrix(input.data) << std::endl
+                  << "x=" << printMatrix(filter_state_.x) << std::endl
+                  << "covariance=" << std::endl
+                  << printMatrix(filter_state_.covariance) << std::endl;
 #endif
 
         // We set the measurement model covariance here because it may be time varying
@@ -348,9 +364,10 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
     }
 
 #ifdef DEBUG_STATE_ESTIMATION
-    std::cout << "Post update state: x=[" << filter_state_.x.transpose()
-              << "], covariance=" << std::endl
-              << filter_state_.covariance << std::endl;
+    std::cout << "Post update:" << std::endl
+              << "x=" << printMatrix(filter_state_.x) << std::endl
+              << "covariance=" << std::endl
+              << printMatrix(filter_state_.covariance) << std::endl;
 #endif
 
     filter_state_.prev_input = input;

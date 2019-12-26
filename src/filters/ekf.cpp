@@ -29,16 +29,16 @@ void EKF::myCorrect(const Eigen::VectorXd& z,
 
 #ifdef DEBUG_STATE_ESTIMATION
     std::cout << "EKF measurement update:" << std::endl
-              << "h=[" << model->h().transpose() << "]" << std::endl
+              << "h=" << printMatrix(model->h()) << std::endl
               << "H=" << std::endl
-              << model->H() << std::endl
+              << printMatrix(model->H()) << std::endl
               << "Q=" << std::endl
-              << model->Q() << std::endl
+              << printMatrix(model->Q()) << std::endl
               << "K=" << std::endl
-              << K << std::endl
-              << "x=" << filter_state_.x.transpose() << std::endl
+              << printMatrix(K) << std::endl
+              << "x=" << printMatrix(filter_state_.x) << std::endl
               << "Covariance=" << std::endl
-              << filter_state_.covariance << std::endl;
+              << printMatrix(filter_state_.covariance) << std::endl;
 #endif
 }
 
@@ -51,14 +51,14 @@ void EKF::EKFPredictionUpdate() {
 
 #ifdef DEBUG_STATE_ESTIMATION
     std::cout << "EKF predicition update:" << std::endl
-              << "g=[" << system_model_->g().transpose() << "]" << std::endl
+              << "g=" << printMatrix(system_model_->g()) << std::endl
               << "G=" << std::endl
-              << system_model_->G() << std::endl
+              << printMatrix(system_model_->G()) << std::endl
               << "R=" << std::endl
-              << system_model_->R() << std::endl
-              << "x=" << filter_state_.x.transpose() << std::endl
+              << printMatrix(system_model_->R()) << std::endl
+              << "x=" << printMatrix(filter_state_.x) << std::endl
               << "Covariance=" << std::endl
-              << filter_state_.covariance << std::endl;
+              << printMatrix(filter_state_.covariance) << std::endl;
 #endif
 }
 

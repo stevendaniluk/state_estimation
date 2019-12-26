@@ -6,6 +6,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Eigen3 REQUIRED)
 
+option(DEBUG_STATE_ESTIMATION "Print debug logs" OFF)
+if(DEBUG_STATE_ESTIMATION)
+  add_definitions(-DDEBUG_STATE_ESTIMATION)
+endif()
+
 option(STATE_ESTIMATION_BUILD_GTEST "Build google test library for unit tests" OFF)
 
 include_directories(

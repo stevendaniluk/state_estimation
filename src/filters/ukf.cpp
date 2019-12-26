@@ -105,23 +105,23 @@ void UKF::myCorrect(const Eigen::VectorXd& z,
 #ifdef DEBUG_STATE_ESTIMATION
     std::cout << "UKF measurement update:" << std::endl
               << "Sigma offsets=" << std::endl
-              << sigma_offset << std::endl
+              << printMatrix(sigma_offset) << std::endl
               << "Sigma points=" << std::endl
-              << sigma_pts << std::endl
+              << printMatrix(sigma_pts) << std::endl
               << "Observed sigma points=" << std::endl
-              << observed_sigma_pts << std::endl
-              << "z_pred=" << z_pred.transpose() << std::endl
+              << printMatrix(observed_sigma_pts) << std::endl
+              << "z_pred=" << printMatrix(z_pred) << std::endl
               << "Q=" << std::endl
-              << model->Q() << std::endl
+              << printMatrix(model->Q()) << std::endl
               << "S=" << std::endl
-              << S << std::endl
+              << printMatrix(S) << std::endl
               << "Cross Covariance=" << std::endl
-              << cross_covariance << std::endl
+              << printMatrix(cross_covariance) << std::endl
               << "K=" << std::endl
-              << K << std::endl
-              << "x=" << filter_state_.x.transpose() << std::endl
+              << printMatrix(K) << std::endl
+              << "x=" << printMatrix(filter_state_.x) << std::endl
               << "Covariance=" << std::endl
-              << filter_state_.covariance << std::endl;
+              << printMatrix(filter_state_.covariance) << std::endl;
 #endif
 }
 
@@ -159,14 +159,14 @@ void UKF::UKFPredictionUpdate(double dt, bool control, Eigen::VectorXd u) {
 #ifdef DEBUG_STATE_ESTIMATION
     std::cout << "UKF predicition update:" << std::endl
               << "Sigma offsets=" << std::endl
-              << sigma_offset << std::endl
+              << printMatrix(sigma_offset) << std::endl
               << "Sigma points=" << std::endl
-              << sigma_pts << std::endl
+              << printMatrix(sigma_pts) << std::endl
               << "R=" << std::endl
-              << system_model_->R() << std::endl
-              << "x=" << filter_state_.x.transpose() << std::endl
+              << printMatrix(system_model_->R()) << std::endl
+              << "x=" << printMatrix(filter_state_.x) << std::endl
               << "Covariance=" << std::endl
-              << filter_state_.covariance << std::endl;
+              << printMatrix(filter_state_.covariance) << std::endl;
 #endif
 }
 

@@ -230,6 +230,14 @@ class FilterBase {
     // timestamp, false otherwise
     bool rewindHistory(double timestamp, std::vector<FilterState>* post_states);
 
+    // printMatrix
+    //
+    // Prints an Eigen matrix with a clean format. Will print in a single row when the matrix
+    // is a vector (i.e. columns=1).
+    //
+    // @param mat: Matrix to print
+    static std::string printMatrix(const Eigen::MatrixXd& mat);
+
     // Internal implementation of predict() for derived classes to populate.
     // Note, the time delta is provided instead of the absolute time.
     virtual void myPredict(double dt) = 0;

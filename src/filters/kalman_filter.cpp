@@ -28,14 +28,14 @@ void KalmanFilter::myCorrect(const Eigen::VectorXd& z,
 #ifdef DEBUG_STATE_ESTIMATION
     std::cout << "KF measurement update:" << std::endl
               << "C=" << std::endl
-              << model->C() << std::endl
+              << printMatrix(model->C()) << std::endl
               << "Q=" << std::endl
-              << model->Q() << std::endl
+              << printMatrix(model->Q()) << std::endl
               << "K=" << std::endl
-              << K << std::endl
-              << "x=" << filter_state_.x.transpose() << std::endl
+              << printMatrix(K) << std::endl
+              << "x=" << printMatrix(filter_state_.x) << std::endl
               << "Covariance=" << std::endl
-              << filter_state_.covariance << std::endl;
+              << printMatrix(filter_state_.covariance) << std::endl;
 #endif
 }
 
@@ -55,14 +55,14 @@ void KalmanFilter::KFPredictionUpdate(double dt, bool control, Eigen::VectorXd u
 #ifdef DEBUG_STATE_ESTIMATION
     std::cout << "KF predicition update:" << std::endl
               << "A=" << std::endl
-              << system_model_->A() << std::endl
+              << printMatrix(system_model_->A()) << std::endl
               << "B=" << std::endl
-              << system_model_->B() << std::endl
+              << printMatrix(system_model_->B()) << std::endl
               << "R=" << std::endl
-              << system_model_->R() << std::endl
+              << printMatrix(system_model_->R()) << std::endl
               << "x=" << filter_state_.x.transpose() << std::endl
               << "Covariance=" << std::endl
-              << filter_state_.covariance << std::endl;
+              << printMatrix(filter_state_.covariance) << std::endl;
 #endif
 }
 
