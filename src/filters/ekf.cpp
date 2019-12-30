@@ -23,8 +23,10 @@ void EKF::myCorrect(const Eigen::VectorXd& z,
     const Eigen::MatrixXd K = cov_H_T * (model->H() * cov_H_T + model->covariance()).inverse();
 
     // Update the state and covariance with the measurement
-    Eigen::MatrixXd I = Eigen::MatrixXd::Identity(filter_state_.x.rows(), filter_state_.x.rows());
-    filter_state_.x += K * (z - model->h());
+    const Eigen::MatrixXd I =
+        Eigen::MatrixXd::Identity(filter_state_.x.rows(), filter_state_.x.rows());
+    const Eigen::VectorXd dx = K * model->subtractVectors(z, model->h());
+    filter_state_.x = system_model_->addVectors(filter_state_.x, dx);
     filter_state_.covariance = (I - K * model->H()) * filter_state_.covariance;
 
 #ifdef DEBUG_STATE_ESTIMATION

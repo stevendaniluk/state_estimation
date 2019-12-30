@@ -32,4 +32,25 @@ uint32_t FilterModel::stateSize() const {
     return state_dims_;
 }
 
+Eigen::VectorXd FilterModel::addVectors(const Eigen::VectorXd& lhs,
+                                        const Eigen::VectorXd& rhs) const {
+    return lhs + rhs;
+}
+
+Eigen::VectorXd FilterModel::subtractVectors(const Eigen::VectorXd& lhs,
+                                             const Eigen::VectorXd& rhs) const {
+    return lhs - rhs;
+}
+
+Eigen::VectorXd FilterModel::weightedSum(const Eigen::VectorXd& w, const Eigen::MatrixXd& X) const {
+    assert(w.size() == X.cols());
+
+    Eigen::VectorXd X_sum = Eigen::VectorXd::Zero(X.rows());
+    for (size_t i = 0; i < w.size(); ++i) {
+        X_sum += w(i) * X.col(i);
+    }
+
+    return X_sum;
+}
+
 }  // namespace state_estimation

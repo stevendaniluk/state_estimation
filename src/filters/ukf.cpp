@@ -67,39 +67,41 @@ void UKF::myCorrect(const Eigen::VectorXd& z,
     observed_sigma_pts.col(0) = model->h();
 
     for (uint32_t i = 0; i < system_model_->stateSize(); ++i) {
-        sigma_pts.col(i + 1) = filter_state_.x + sigma_offset.col(i);
+        sigma_pts.col(i + 1) = system_model_->addVectors(filter_state_.x, sigma_offset.col(i));
         model->update(sigma_pts.col(i + 1));
         observed_sigma_pts.col(i + 1) = model->h();
 
-        sigma_pts.col(i + 1 + model->measurementSize()) = filter_state_.x - sigma_offset.col(i);
+        sigma_pts.col(i + 1 + model->measurementSize()) =
+            system_model_->subtractVectors(filter_state_.x, sigma_offset.col(i));
         model->update(sigma_pts.col(i + 1 + model->measurementSize()));
         observed_sigma_pts.col(i + 1 + model->measurementSize()) = model->h();
     }
 
     // Compute the weighted mean for the predicted measurement
-    Eigen::VectorXd z_pred = Eigen::VectorXd::Zero(model->measurementSize());
-    for (uint32_t i = 0; i < num_sigma_pts_; ++i) {
-        z_pred += w_mean_(i) * observed_sigma_pts.col(i);
-    }
+    Eigen::VectorXd z_pred = model->weightedSum(w_mean_, observed_sigma_pts);
 
     // Compute the gain
     Eigen::MatrixXd S = model->covariance();
     for (uint32_t i = 0; i < num_sigma_pts_; ++i) {
-        const Eigen::VectorXd dz = (observed_sigma_pts.col(i) - z_pred);
+        const Eigen::VectorXd dz = model->subtractVectors(observed_sigma_pts.col(i), z_pred);
         S += w_cov_(i) * dz * dz.transpose();
     }
 
     Eigen::MatrixXd cross_covariance =
         Eigen::MatrixXd::Zero(model->measurementSize(), model->measurementSize());
     for (uint32_t i = 0; i < num_sigma_pts_; ++i) {
-        cross_covariance += w_cov_(i) * (sigma_pts.col(i) - sigma_pts.col(0)) *
-                            (observed_sigma_pts.col(i) - z_pred).transpose();
+        const Eigen::VectorXd dx =
+            system_model_->subtractVectors(sigma_pts.col(i), sigma_pts.col(0));
+        const Eigen::VectorXd dz = model->subtractVectors(observed_sigma_pts.col(i), z_pred);
+
+        cross_covariance += w_cov_(i) * dx * dz.transpose();
     }
 
     const Eigen::MatrixXd K = cross_covariance * S.inverse();
 
     // Perform the mean and covariance updates
-    filter_state_.x += K * (z - z_pred);
+    const Eigen::VectorXd dx = K * model->subtractVectors(z, z_pred);
+    filter_state_.x = system_model_->addVectors(filter_state_.x, dx);
     filter_state_.covariance -= K * S * K.transpose();
 
 #ifdef DEBUG_STATE_ESTIMATION
@@ -136,23 +138,25 @@ void UKF::UKFPredictionUpdate(double dt, bool control, Eigen::VectorXd u) {
     sigma_pts.col(0) = system_model_->g();
 
     for (uint32_t i = 0; i < system_model_->stateSize(); ++i) {
-        updateSystemModel(filter_state_.x + sigma_offset.col(i), dt, control, u);
+        const Eigen::VectorXd x_high =
+            system_model_->addVectors(filter_state_.x, sigma_offset.col(i));
+        updateSystemModel(x_high, dt, control, u);
         sigma_pts.col(i + 1) = system_model_->g();
 
-        updateSystemModel(filter_state_.x - sigma_offset.col(i), dt, control, u);
+        const Eigen::VectorXd x_low =
+            system_model_->subtractVectors(filter_state_.x, sigma_offset.col(i));
+        updateSystemModel(x_low, dt, control, u);
         sigma_pts.col(i + 1 + system_model_->stateSize()) = system_model_->g();
     }
 
     // Compute the weighted mean
-    filter_state_.x.setZero();
-    for (uint32_t i = 0; i < num_sigma_pts_; ++i) {
-        filter_state_.x += w_mean_(i) * sigma_pts.col(i);
-    }
+    filter_state_.x = system_model_->weightedSum(w_mean_, sigma_pts);
 
     // Compute the weighted covariance
     filter_state_.covariance = system_model_->covariance();
     for (uint32_t i = 0; i < num_sigma_pts_; ++i) {
-        const Eigen::VectorXd dx = (sigma_pts.col(i) - filter_state_.x);
+        const Eigen::VectorXd dx =
+            system_model_->subtractVectors(sigma_pts.col(i), filter_state_.x);
         filter_state_.covariance += w_cov_(i) * dx * dx.transpose();
     }
 

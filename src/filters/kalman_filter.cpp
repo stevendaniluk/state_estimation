@@ -21,8 +21,11 @@ void KalmanFilter::myCorrect(const Eigen::VectorXd& z,
     const Eigen::MatrixXd K = cov_C_T * (model->C() * cov_C_T + model->covariance()).inverse();
 
     // Update the state and covariance with the measurement
-    Eigen::MatrixXd I = Eigen::MatrixXd::Identity(filter_state_.x.rows(), filter_state_.x.rows());
-    filter_state_.x += K * (z - model->C() * filter_state_.x);
+    const Eigen::MatrixXd I =
+        Eigen::MatrixXd::Identity(filter_state_.x.rows(), filter_state_.x.rows());
+    const Eigen::VectorXd z_pred = model->C() * filter_state_.x;
+    const Eigen::VectorXd dx = K * model->subtractVectors(z, z_pred);
+    filter_state_.x = system_model_->addVectors(filter_state_.x, dx);
     filter_state_.covariance = (I - K * model->C()) * filter_state_.covariance;
 
 #ifdef DEBUG_STATE_ESTIMATION
@@ -45,7 +48,9 @@ void KalmanFilter::KFPredictionUpdate(double dt, bool control, Eigen::VectorXd u
         filter_state_.x = system_model_->A() * filter_state_.x;
     } else {
         system_model_->update(filter_state_.x, u, dt);
-        filter_state_.x = system_model_->A() * filter_state_.x + system_model_->B() * u;
+        const Eigen::VectorXd Ax = system_model_->A() * filter_state_.x;
+        const Eigen::VectorXd Bu = system_model_->B() * u;
+        filter_state_.x = system_model_->addVectors(Ax, Bu);
     }
 
     filter_state_.covariance =

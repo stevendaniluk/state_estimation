@@ -8,6 +8,9 @@ namespace state_estimation {
 // FilterModel
 //
 // Base class for containing common functionality in system and measurement models.
+//
+// The model is responsible for defining arithmetic operations for state/measurement vectors
+// (addition, subtraction, and weighted sum).
 class FilterModel {
   public:
     // Constructor
@@ -34,6 +37,38 @@ class FilterModel {
     //
     // @return: Number of state variables
     uint32_t stateSize() const;
+
+    // addVectors
+    //
+    // Provides the addition operation for two vectors. This is by default simply lhs + rhs,
+    // but can be overridden to apply additional operations like normalization or constraints.
+    //
+    // @param lhs: Left side vector
+    // @param rhs: Right side vector
+    // @return: lhs + rhs
+    virtual Eigen::VectorXd addVectors(const Eigen::VectorXd& lhs,
+                                       const Eigen::VectorXd& rhs) const;
+
+    // subtractVectors
+    //
+    // Provides the subtraction operation for two vectors. This is by default simply lhs - rhs,
+    // but can be overridden to apply additional operations like normalization or constraints.
+    //
+    // @param lhs: Left side vector
+    // @param rhs: Right side vector
+    // @return: lhs - rhs
+    virtual Eigen::VectorXd subtractVectors(const Eigen::VectorXd& lhs,
+                                            const Eigen::VectorXd& rhs) const;
+
+    // weightedSum
+    //
+    // Provides the operation to compute the weighted sum of a set of vectors, i.e.
+    //   X' = sum_i(w * X_i)
+    //
+    // @param w: Scalar weight values
+    // @param X: Matrix of data to process, each column is a vector to scale by the weight
+    // @return: Weighted sum
+    virtual Eigen::VectorXd weightedSum(const Eigen::VectorXd& w, const Eigen::MatrixXd& X) const;
 
   protected:
     // postTfUpdate
