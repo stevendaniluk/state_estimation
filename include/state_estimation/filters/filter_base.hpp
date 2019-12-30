@@ -355,7 +355,7 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
 #endif
 
         // We set the measurement model covariance here because it may be time varying
-        input.model->setQ(input.covariance);
+        input.model->setCovariance(input.covariance);
         myCorrect(input.data, input.model);
     }
 

@@ -18,7 +18,7 @@ void KalmanFilter::myCorrect(const Eigen::VectorXd& z,
 
     // Compute the Kalman gain
     const Eigen::MatrixXd cov_C_T = filter_state_.covariance * model->C().transpose();
-    const Eigen::MatrixXd K = cov_C_T * (model->C() * cov_C_T + model->Q()).inverse();
+    const Eigen::MatrixXd K = cov_C_T * (model->C() * cov_C_T + model->covariance()).inverse();
 
     // Update the state and covariance with the measurement
     Eigen::MatrixXd I = Eigen::MatrixXd::Identity(filter_state_.x.rows(), filter_state_.x.rows());
@@ -30,7 +30,7 @@ void KalmanFilter::myCorrect(const Eigen::VectorXd& z,
               << "C=" << std::endl
               << printMatrix(model->C()) << std::endl
               << "Q=" << std::endl
-              << printMatrix(model->Q()) << std::endl
+              << printMatrix(model->covariance()) << std::endl
               << "K=" << std::endl
               << printMatrix(K) << std::endl
               << "x=" << printMatrix(filter_state_.x) << std::endl
@@ -50,7 +50,7 @@ void KalmanFilter::KFPredictionUpdate(double dt, bool control, Eigen::VectorXd u
 
     filter_state_.covariance =
         system_model_->A() * filter_state_.covariance * system_model_->A().transpose() +
-        system_model_->R();
+        system_model_->covariance();
 
 #ifdef DEBUG_STATE_ESTIMATION
     std::cout << "KF predicition update:" << std::endl
@@ -59,7 +59,7 @@ void KalmanFilter::KFPredictionUpdate(double dt, bool control, Eigen::VectorXd u
               << "B=" << std::endl
               << printMatrix(system_model_->B()) << std::endl
               << "R=" << std::endl
-              << printMatrix(system_model_->R()) << std::endl
+              << printMatrix(system_model_->covariance()) << std::endl
               << "x=" << filter_state_.x.transpose() << std::endl
               << "Covariance=" << std::endl
               << printMatrix(filter_state_.covariance) << std::endl;

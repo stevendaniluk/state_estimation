@@ -83,7 +83,7 @@ void UKF::myCorrect(const Eigen::VectorXd& z,
     }
 
     // Compute the gain
-    Eigen::MatrixXd S = model->Q();
+    Eigen::MatrixXd S = model->covariance();
     for (uint32_t i = 0; i < num_sigma_pts_; ++i) {
         const Eigen::VectorXd dz = (observed_sigma_pts.col(i) - z_pred);
         S += w_cov_(i) * dz * dz.transpose();
@@ -112,7 +112,7 @@ void UKF::myCorrect(const Eigen::VectorXd& z,
               << printMatrix(observed_sigma_pts) << std::endl
               << "z_pred=" << printMatrix(z_pred) << std::endl
               << "Q=" << std::endl
-              << printMatrix(model->Q()) << std::endl
+              << printMatrix(model->covariance()) << std::endl
               << "S=" << std::endl
               << printMatrix(S) << std::endl
               << "Cross Covariance=" << std::endl
@@ -150,7 +150,7 @@ void UKF::UKFPredictionUpdate(double dt, bool control, Eigen::VectorXd u) {
     }
 
     // Compute the weighted covariance
-    filter_state_.covariance = system_model_->R();
+    filter_state_.covariance = system_model_->covariance();
     for (uint32_t i = 0; i < num_sigma_pts_; ++i) {
         const Eigen::VectorXd dx = (sigma_pts.col(i) - filter_state_.x);
         filter_state_.covariance += w_cov_(i) * dx * dx.transpose();
@@ -163,7 +163,7 @@ void UKF::UKFPredictionUpdate(double dt, bool control, Eigen::VectorXd u) {
               << "Sigma points=" << std::endl
               << printMatrix(sigma_pts) << std::endl
               << "R=" << std::endl
-              << printMatrix(system_model_->R()) << std::endl
+              << printMatrix(system_model_->covariance()) << std::endl
               << "x=" << printMatrix(filter_state_.x) << std::endl
               << "Covariance=" << std::endl
               << printMatrix(filter_state_.covariance) << std::endl;

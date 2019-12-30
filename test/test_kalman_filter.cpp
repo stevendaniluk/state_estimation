@@ -14,7 +14,7 @@ class KFSampleSystemModel : public system_models::LinearSystemModel {
     KFSampleSystemModel(uint32_t n, uint32_t m)
         : LinearSystemModel::LinearSystemModel(n, m) {
         setA(Eigen::MatrixXd::Identity(n, n));
-        setR(1e-3 * Eigen::MatrixXd::Identity(n, n));
+        setCovariance(1e-3 * Eigen::MatrixXd::Identity(n, n));
     }
 
   protected:
@@ -78,7 +78,7 @@ TEST_F(KalmanFilterTest, PredictUsesAMatrixForCovarianceUpdate) {
 
     // Run it through the filter, with zero process noise to isolate the Jacobian
     system_model.setA(A);
-    system_model.setR(Eigen::MatrixXd::Zero(2, 2));
+    system_model.setCovariance(Eigen::MatrixXd::Zero(2, 2));
     filter->predict(vec_22, filter->getStateTime() + dt);
 
     // Compute the target covariance with the Kalman update of Sigma = A * Sigma * A'

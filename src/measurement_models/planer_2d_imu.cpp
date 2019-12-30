@@ -48,9 +48,5 @@ void Planer2DImu::myUpdate(const Eigen::VectorXd& x) {
     }
 }
 
-void Planer2DImu::postQUpdate() {
-    // TODO
-}
-
 }  // namespace measurement_models
 }  // namespace state_estimation

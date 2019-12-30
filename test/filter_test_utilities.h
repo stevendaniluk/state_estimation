@@ -14,7 +14,7 @@ class SampleSystemModel : public state_estimation::system_models::NonlinearSyste
   public:
     SampleSystemModel(uint32_t n, uint32_t m)
         : NonlinearSystemModel::NonlinearSystemModel(n, m) {
-        setR(1e-3 * Eigen::MatrixXd::Identity(n, n));
+        setCovariance(1e-3 * Eigen::MatrixXd::Identity(n, n));
         G_ = Eigen::MatrixXd::Identity(n, n);
     }
 
@@ -95,13 +95,13 @@ class FilterTest : public ::testing::Test {
         // levels
         Eigen::MatrixXd sigma_1 = 1e-2 * Eigen::MatrixXd::Identity(2, 2);
         SysT model_1(2, 2);
-        model_1.setR(sigma_1);
+        model_1.setCovariance(sigma_1);
         FilterT filter_1(&model_1, x_i, cov_i, t_i);
         filter_1.predict(vec_22, t_i + dt);
 
         Eigen::MatrixXd sigma_2 = 1e-4 * Eigen::MatrixXd::Identity(2, 2);
         SysT model_2(2, 2);
-        model_2.setR(sigma_2);
+        model_2.setCovariance(sigma_2);
         FilterT filter_2(&model_2, x_i, cov_i, t_i);
         filter_2.predict(vec_22, t_i + dt);
 
@@ -161,7 +161,7 @@ class FilterTest : public ::testing::Test {
         // Note: This will only be true for the KF and EKF variants
 
         // Will need to zero the process noise to isolate the correction update
-        system_model.setR(Eigen::MatrixXd::Zero(2, 2));
+        system_model.setCovariance(Eigen::MatrixXd::Zero(2, 2));
 
         Eigen::VectorXd meas = vec_22;
         filter->correct(meas, cov_i, t_i, &meas_model);
@@ -175,7 +175,7 @@ class FilterTest : public ::testing::Test {
         // Note: This will only be true for the KF and EKF variants
 
         // Will need to zero the process noise to isolate the correction update
-        system_model.setR(Eigen::MatrixXd::Zero(2, 2));
+        system_model.setCovariance(Eigen::MatrixXd::Zero(2, 2));
 
         filter->correct(vec_11, cov_i, t_i, &meas_model);
 

@@ -20,7 +20,7 @@ void EKF::myCorrect(const Eigen::VectorXd& z,
 
     // Compute the Kalman gain
     const Eigen::MatrixXd cov_H_T = filter_state_.covariance * model->H().transpose();
-    const Eigen::MatrixXd K = cov_H_T * (model->H() * cov_H_T + model->Q()).inverse();
+    const Eigen::MatrixXd K = cov_H_T * (model->H() * cov_H_T + model->covariance()).inverse();
 
     // Update the state and covariance with the measurement
     Eigen::MatrixXd I = Eigen::MatrixXd::Identity(filter_state_.x.rows(), filter_state_.x.rows());
@@ -33,7 +33,7 @@ void EKF::myCorrect(const Eigen::VectorXd& z,
               << "H=" << std::endl
               << printMatrix(model->H()) << std::endl
               << "Q=" << std::endl
-              << printMatrix(model->Q()) << std::endl
+              << printMatrix(model->covariance()) << std::endl
               << "K=" << std::endl
               << printMatrix(K) << std::endl
               << "x=" << printMatrix(filter_state_.x) << std::endl
@@ -47,7 +47,7 @@ void EKF::EKFPredictionUpdate() {
     filter_state_.x = system_model_->g();
     filter_state_.covariance =
         system_model_->G() * filter_state_.covariance * system_model_->G().transpose() +
-        system_model_->R();
+        system_model_->covariance();
 
 #ifdef DEBUG_STATE_ESTIMATION
     std::cout << "EKF predicition update:" << std::endl
@@ -55,7 +55,7 @@ void EKF::EKFPredictionUpdate() {
               << "G=" << std::endl
               << printMatrix(system_model_->G()) << std::endl
               << "R=" << std::endl
-              << printMatrix(system_model_->R()) << std::endl
+              << printMatrix(system_model_->covariance()) << std::endl
               << "x=" << printMatrix(filter_state_.x) << std::endl
               << "Covariance=" << std::endl
               << printMatrix(filter_state_.covariance) << std::endl;

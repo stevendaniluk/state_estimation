@@ -1,5 +1,6 @@
 #pragma once
 
+#include <state_estimation/filters/filter_model.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
@@ -15,7 +16,7 @@ namespace state_estimation {
 //
 // There is also a version of update that does not take in any control, for systems that aren't
 // modeled with any control inputs and the current state should be propegated forward.
-class SystemModel {
+class SystemModel : public FilterModel {
   public:
     // Constructor
     //
@@ -41,26 +42,6 @@ class SystemModel {
     // @param dt: Duration to propegate the state forward in time
     virtual void updateNoControl(const Eigen::VectorXd& x, double dt);
 
-    // R
-    //
-    // @return Process covariance
-    Eigen::MatrixXd R() const;
-
-    // setR
-    //
-    // @param new_R: New process covariance to use
-    void setR(const Eigen::MatrixXd& new_R);
-
-    // setTf
-    //
-    // @param tf: Transformation from the control frame to the state frame
-    void setTf(const Eigen::Isometry3d& tf);
-
-    // stateSize
-    //
-    // @return: Number of state variables
-    uint32_t stateSize() const;
-
     // controlSize
     //
     // @return: Number of control variables
@@ -71,14 +52,8 @@ class SystemModel {
     virtual void myUpdate(const Eigen::VectorXd& x, const Eigen::VectorXd& u, double dt) = 0;
     virtual void myUpdateNoControl(const Eigen::VectorXd& x, double dt) = 0;
 
-    // Dimension of the state vector
-    uint32_t state_dims_;
     // Dimension of the control vector
     uint32_t control_dims_;
-    // Process covariance
-    Eigen::MatrixXd R_;
-    // Transform from the control frame to the state frame
-    Eigen::Isometry3d tf_;
 };
 
 }  // namespace state_estimation

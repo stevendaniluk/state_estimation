@@ -23,9 +23,6 @@ class Planer2DImu : public NonlinearMeasurementModel {
   protected:
     void myUpdate(const Eigen::VectorXd& x) override;
 
-    // We will need to rotate the covariance matrix to account for the sensor transform
-    void postQUpdate() override;
-
     // Flag for if gravity should be included in the measurement
     bool include_gravity_;
     // Gravitational acceleration to use
