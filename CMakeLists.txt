@@ -63,6 +63,7 @@ if(BUILD_TESTING MATCHES ON)
 
   # Define all the tests we want to build, the loop below will create them all
   set(TEST_TARGETS
+    test_angle_utilities
     test_transformation_utilities
     test_imu_utilities
     test_planer_2d_state_propegation
