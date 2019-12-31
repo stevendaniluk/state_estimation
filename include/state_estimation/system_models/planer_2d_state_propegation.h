@@ -22,10 +22,17 @@ class Planer2DStatePropegation : public NonlinearSystemModel {
     Planer2DStatePropegation(bool compute_jacobian = false);
 
   protected:
-    // Controls are not used at all
     void myUpdate(const Eigen::VectorXd& x, const Eigen::VectorXd& u, double dt) override;
 
     void myUpdateNoControl(const Eigen::VectorXd& x, double dt) override;
+
+    Eigen::VectorXd addVectors(const Eigen::VectorXd& lhs,
+                               const Eigen::VectorXd& rhs) const override;
+
+    Eigen::VectorXd subtractVectors(const Eigen::VectorXd& lhs,
+                                    const Eigen::VectorXd& rhs) const override;
+
+    Eigen::VectorXd weightedSum(const Eigen::VectorXd& w, const Eigen::MatrixXd& X) const override;
 };
 
 }  // namespace system_models

@@ -75,5 +75,20 @@ void Planer2DStatePropegation::myUpdateNoControl(const Eigen::VectorXd& x, doubl
     }
 }
 
+Eigen::VectorXd Planer2DStatePropegation::addVectors(const Eigen::VectorXd& lhs,
+                                                     const Eigen::VectorXd& rhs) const {
+    return planer_2d::addState(lhs, rhs);
+}
+
+Eigen::VectorXd Planer2DStatePropegation::subtractVectors(const Eigen::VectorXd& lhs,
+                                                          const Eigen::VectorXd& rhs) const {
+    return planer_2d::subtractState(lhs, rhs);
+}
+
+Eigen::VectorXd Planer2DStatePropegation::weightedSum(const Eigen::VectorXd& w,
+                                                      const Eigen::MatrixXd& X) const {
+    return planer_2d::weightedSumOfStates(w, X);
+}
+
 }  // namespace system_models
 }  // namespace state_estimation
