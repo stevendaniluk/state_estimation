@@ -339,9 +339,6 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
                       << "s before applying correction" << std::endl;
 #endif
             myPredict(dt);
-            if (params_.constrain_angles) {
-                constrainStateAngles();
-            }
         }
 
 #ifdef DEBUG_STATE_ESTIMATION
@@ -357,10 +354,6 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
         // We set the measurement model covariance here because it may be time varying
         input.model->setCovariance(input.covariance);
         myCorrect(input.data, input.model);
-    }
-
-    if (params_.constrain_angles) {
-        constrainStateAngles();
     }
 
 #ifdef DEBUG_STATE_ESTIMATION
@@ -414,18 +407,6 @@ void FilterBase<SysT, MeasT>::pruneQueue(std::deque<FilterInput>* queue) {
             } else {
                 ++iter;
             }
-        }
-    }
-}
-
-template <typename SysT, typename MeasT>
-void FilterBase<SysT, MeasT>::constrainStateAngles() {
-    for (uint32_t index : params_.angle_indices) {
-        while (filter_state_.x(index) > 2 * M_PI) {
-            filter_state_.x(index) -= 2 * M_PI;
-        }
-        while (filter_state_.x(index) < -2 * M_PI) {
-            filter_state_.x(index) += 2 * M_PI;
         }
     }
 }

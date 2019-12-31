@@ -77,11 +77,6 @@ class FilterBase {
         bool rewind_history = false;
         // Duration to retain a history of the filter states [s]
         double history_window_sec = 1.0;
-        // When true all state vector elements that contain angles will be constrained to be
-        // within the interval [-pi, pi] after every predict and correction step
-        bool constrain_angles = false;
-        // State vector indices that contain angles
-        std::vector<uint32_t> angle_indices;
     };
 
     // Constructor with state initialized to empty vectors and matrices
@@ -283,11 +278,6 @@ class FilterBase {
     //
     // @param queue: Queue to prune
     void pruneQueue(std::deque<FilterInput>* queue);
-
-    // constrainStateAngles
-    //
-    // Constrains all state vector angles to the interval [-pi, pi].
-    void constrainStateAngles();
 
     // History of filter state for jumping back in time
     std::deque<FilterState> history_;
