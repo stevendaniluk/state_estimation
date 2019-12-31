@@ -18,6 +18,10 @@ namespace state_estimation {
 //   -Processing inputs (controls or measurements) and handling out of order inputs
 //   -Maintaining a queue of inputs which can be processed as a batch
 //
+// The system and measurement models can determine if the state is stationary, in which case the
+// update will not be performed, and instead the state and covariance matrix will be passed to the
+// model to optionally be modified to be stationary.
+//
 // This does not provide any functionality for actually defining the prediction and correction
 // steps, that is left to be implemented by the derived classes.
 //

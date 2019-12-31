@@ -38,6 +38,41 @@ class FilterModel {
     // @return: Number of state variables
     uint32_t stateSize() const;
 
+    // setCheckStationary
+    //
+    // @param check: When true, the system will be checked for being stationary on each update
+    void setCheckStationary(bool check);
+
+    // checkStationary
+    //
+    // @return: True when this model will evaluate the input to check for stationary conditions
+    bool checkStationary();
+
+    // isStationary
+    //
+    // @param x: State to evaluate
+    // @param data: Control/Measurement to evaluate
+    // @return: True when the state and control/measurement is considered stationary
+    bool isStationary(const Eigen::VectorXd& x, const Eigen::VectorXd& data) const;
+
+    // makeStationary
+    //
+    // @param x: State to modify to be stationary
+    // @param cov: Covariance to modify to be stationary
+    void makeStationary(Eigen::VectorXd* x, Eigen::MatrixXd* cov) const;
+
+    // setIsStationaryFunction
+    //
+    // @param f: Function to envoke when isStationary() is called
+    void setIsStationaryFunction(
+        const std::function<bool(const Eigen::VectorXd&, const Eigen::VectorXd&)>& f);
+
+    // setMakeStationaryFunction
+    //
+    // @param f: Function to envoke when isStationary() is called
+    void setMakeStationaryFunction(
+        const std::function<void(Eigen::VectorXd*, Eigen::MatrixXd*)>& f);
+
     // addVectors
     //
     // Provides the addition operation for two vectors. This is by default simply lhs + rhs,
@@ -87,6 +122,12 @@ class FilterModel {
     Eigen::Isometry3d tf_;
     // Flag for if a non identity transformation has been provided
     bool tf_set_;
+
+  private:
+    // Function for determining if a state and control/measurement input is stationary
+    std::function<bool(const Eigen::VectorXd&, const Eigen::VectorXd&)> is_stationary_f_;
+    // Function for modifying a state vector and covariance matrix when stationary
+    std::function<void(Eigen::VectorXd*, Eigen::MatrixXd*)> make_stationary_f_;
 };
 
 }  // namespace state_estimation

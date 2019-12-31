@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <state_estimation/filters/filter_base.h>
-#include <state_estimation/measurement_models/linear_measurement_model.h>
-#include <state_estimation/system_models/linear_system_model.h>
+#include <state_estimation/measurement_models/measurement_model.h>
+#include <state_estimation/system_models/system_model.h>
 
 using namespace state_estimation;
 
@@ -72,10 +72,7 @@ class TestFilter : public FilterBase<TestFilterSystemModel, TestFilterMeasuremen
 // Test fixture for storing a filter and an assortment of input data
 class FilterBaseTest : public ::testing::Test {
   protected:
-    void SetUp() override {
-        filter.reset(new TestFilter(&system_model));
-        filter->initialize(x_i, cov_i, t_i);
-    }
+    void SetUp() override { filter.reset(new TestFilter(&system_model, x_i, cov_i, t_i)); }
 
     std::unique_ptr<TestFilter> filter;
     TestFilterSystemModel system_model;
@@ -367,4 +364,98 @@ TEST_F(FilterBaseTest, RevertToStateDoesNothingWithFutureDatedTimestamp) {
     EXPECT_EQ(pre_revert_state, filter->getState())
         << "Target: " << pre_revert_state.transpose()
         << ", Actual: " << filter->getState().transpose();
+}
+
+TEST_F(FilterBaseTest, PredictSkippedWhenStationary) {
+    // Define some custom functions for the system model stationary ops that declare the system
+    // stationary for positive values in the first entries of the control vector, and simply
+    // increments the state and covariance by some factor
+    std::function<bool(const Eigen::VectorXd&, const Eigen::VectorXd&)> isStationary =
+        [](const Eigen::VectorXd& x, const Eigen::VectorXd& data) { return data(0) > 0; };
+
+    std::function<void(Eigen::VectorXd*, Eigen::MatrixXd*)> makeStationary =
+        [](Eigen::VectorXd* x, Eigen::MatrixXd* cov) {
+            (*x) += Eigen::VectorXd::Constant(x->size(), 1000);
+            (*cov) += Eigen::MatrixXd::Constant(cov->rows(), cov->cols(), 1000);
+        };
+
+    system_model.setIsStationaryFunction(isStationary);
+    system_model.setMakeStationaryFunction(makeStationary);
+    system_model.setCheckStationary(true);
+
+    Eigen::VectorXd x_stationary;
+    Eigen::MatrixXd cov_stationary;
+
+    // With a zero control input the state should not be stationary
+    x_stationary = filter->getState();
+    cov_stationary = filter->getCovariance();
+    makeStationary(&x_stationary, &cov_stationary);
+
+    filter->predict(vec_000, filter->getStateTime() + 1.0);
+    EXPECT_NE(x_stationary, filter->getState())
+        << "Target: " << x_stationary.transpose() << ", Actual: " << filter->getState().transpose();
+    EXPECT_NE(cov_stationary, filter->getCovariance()) << "Target:" << std::endl
+                                                       << cov_stationary << std::endl
+                                                       << "Actual:" << std::endl
+                                                       << filter->getCovariance();
+
+    // Non zero control should be stationary
+    x_stationary = filter->getState();
+    cov_stationary = filter->getCovariance();
+    makeStationary(&x_stationary, &cov_stationary);
+
+    filter->predict(vec_111, filter->getStateTime() + 1.0);
+    EXPECT_EQ(x_stationary, filter->getState())
+        << "Target: " << x_stationary.transpose() << ", Actual: " << filter->getState().transpose();
+    EXPECT_EQ(cov_stationary, filter->getCovariance()) << "Target:" << std::endl
+                                                       << cov_stationary << std::endl
+                                                       << "Actual:" << std::endl
+                                                       << filter->getCovariance();
+}
+
+TEST_F(FilterBaseTest, CorrectSkippedWhenStationary) {
+    // Define some custom functions for the measurement model stationary ops that declare the
+    // system stationary for positive values in the first entries of the measurement vector, and
+    // simply increments the state and covariance by some factor
+    std::function<bool(const Eigen::VectorXd&, const Eigen::VectorXd&)> isStationary =
+        [](const Eigen::VectorXd& x, const Eigen::VectorXd& data) { return data(0) > 0; };
+
+    std::function<void(Eigen::VectorXd*, Eigen::MatrixXd*)> makeStationary =
+        [](Eigen::VectorXd* x, Eigen::MatrixXd* cov) {
+            (*x) += Eigen::VectorXd::Constant(x->size(), 1000);
+            (*cov) += Eigen::MatrixXd::Constant(cov->rows(), cov->cols(), 1000);
+        };
+
+    meas_model.setIsStationaryFunction(isStationary);
+    meas_model.setMakeStationaryFunction(makeStationary);
+    meas_model.setCheckStationary(true);
+
+    Eigen::VectorXd x_stationary;
+    Eigen::MatrixXd cov_stationary;
+
+    // With a zero measurement input the state should not be stationary
+    x_stationary = filter->getState();
+    cov_stationary = filter->getCovariance();
+    makeStationary(&x_stationary, &cov_stationary);
+
+    filter->correct(vec_000, cov_i, filter->getStateTime(), &meas_model);
+    EXPECT_NE(x_stationary, filter->getState())
+        << "Target: " << x_stationary.transpose() << ", Actual: " << filter->getState().transpose();
+    EXPECT_NE(cov_stationary, filter->getCovariance()) << "Target:" << std::endl
+                                                       << cov_stationary << std::endl
+                                                       << "Actual:" << std::endl
+                                                       << filter->getCovariance();
+
+    // Non zero measurement should be stationary
+    x_stationary = filter->getState();
+    cov_stationary = filter->getCovariance();
+    makeStationary(&x_stationary, &cov_stationary);
+
+    filter->correct(vec_111, cov_i, filter->getStateTime(), &meas_model);
+    EXPECT_EQ(x_stationary, filter->getState())
+        << "Target: " << x_stationary.transpose() << ", Actual: " << filter->getState().transpose();
+    EXPECT_EQ(cov_stationary, filter->getCovariance()) << "Target:" << std::endl
+                                                       << cov_stationary << std::endl
+                                                       << "Actual:" << std::endl
+                                                       << filter->getCovariance();
 }

@@ -32,6 +32,32 @@ uint32_t FilterModel::stateSize() const {
     return state_dims_;
 }
 
+void FilterModel::setCheckStationary(bool check) {
+    check_stationary_ = check;
+}
+
+bool FilterModel::checkStationary() {
+    return check_stationary_ && is_stationary_f_ && make_stationary_f_;
+}
+
+bool FilterModel::isStationary(const Eigen::VectorXd& x, const Eigen::VectorXd& data) const {
+    return is_stationary_f_(x, data);
+}
+
+void FilterModel::makeStationary(Eigen::VectorXd* x, Eigen::MatrixXd* cov) const {
+    make_stationary_f_(x, cov);
+}
+
+void FilterModel::setIsStationaryFunction(
+    const std::function<bool(const Eigen::VectorXd&, const Eigen::VectorXd&)>& f) {
+    is_stationary_f_ = f;
+}
+
+void FilterModel::setMakeStationaryFunction(
+    const std::function<void(Eigen::VectorXd*, Eigen::MatrixXd*)>& f) {
+    make_stationary_f_ = f;
+}
+
 Eigen::VectorXd FilterModel::addVectors(const Eigen::VectorXd& lhs,
                                         const Eigen::VectorXd& rhs) const {
     return lhs + rhs;

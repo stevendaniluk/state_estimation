@@ -325,10 +325,19 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
                   << printMatrix(filter_state_.covariance) << std::endl;
 #endif
 
-        if (input.data.size() > 0) {
-            myPredict(input.data, dt);
+        if (!(system_model_->checkStationary() &&
+              system_model_->isStationary(filter_state_.x, input.data))) {
+            // Update as normal
+            if (input.data.size() > 0) {
+                myPredict(input.data, dt);
+            } else {
+                myPredict(dt);
+            }
         } else {
-            myPredict(dt);
+            system_model_->makeStationary(&filter_state_.x, &filter_state_.covariance);
+#ifdef DEBUG_STATE_ESTIMATION
+            std::cout << "System is stationary" << std::endl;
+#endif
         }
     } else {
         if (dt > 0) {
@@ -338,7 +347,16 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
             std::cout << "Advancing state x=" << printMatrix(filter_state_.x) << " by " << dt
                       << "s before applying correction" << std::endl;
 #endif
-            myPredict(dt);
+
+            if (!(system_model_->checkStationary() &&
+                  system_model_->isStationary(filter_state_.x, Eigen::VectorXd()))) {
+                myPredict(dt);
+            } else {
+                system_model_->makeStationary(&filter_state_.x, &filter_state_.covariance);
+#ifdef DEBUG_STATE_ESTIMATION
+                std::cout << "System is stationary" << std::endl;
+#endif
+            }
         }
 
 #ifdef DEBUG_STATE_ESTIMATION
@@ -353,7 +371,16 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
 
         // We set the measurement model covariance here because it may be time varying
         input.model->setCovariance(input.covariance);
-        myCorrect(input.data, input.model);
+
+        if (!(input.model->checkStationary() &&
+              input.model->isStationary(filter_state_.x, input.data))) {
+            myCorrect(input.data, input.model);
+        } else {
+            input.model->makeStationary(&filter_state_.x, &filter_state_.covariance);
+#ifdef DEBUG_STATE_ESTIMATION
+            std::cout << "System is stationary" << std::endl;
+#endif
+        }
     }
 
 #ifdef DEBUG_STATE_ESTIMATION
