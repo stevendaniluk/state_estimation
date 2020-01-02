@@ -404,7 +404,7 @@ void FilterBase<SysT, MeasT>::applyBatchInputs(const std::vector<FilterInput>& i
 
 template <typename SysT, typename MeasT>
 void FilterBase<SysT, MeasT>::pruneHistory() {
-    if (params_.rewind_history) {
+    if (!params_.rewind_history) {
         return;
     }
 
