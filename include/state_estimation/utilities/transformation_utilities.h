@@ -18,6 +18,17 @@ namespace state_estimation {
 Eigen::Vector3d transformLinearAcceleration(const Eigen::Vector3d& a, const Eigen::Vector3d& w,
                                             const Eigen::Isometry3d& tf);
 
+// transformLinearVelocity
+//
+// Transforms a linear velocity vector between two frames.
+//
+// @param v: Velocity vector to transform
+// @param w: Angular velocity of body
+// @param tf: Transform from the source frame to the target frame
+// @return: Linear velocity transformed to target frame
+Eigen::Vector3d transformLinearVelocity(const Eigen::Vector3d& v, const Eigen::Vector3d& w,
+                                        const Eigen::Isometry3d& tf);
+
 // transformAngularVelocity
 //
 // Transforms an angular velocity vector between two frames.

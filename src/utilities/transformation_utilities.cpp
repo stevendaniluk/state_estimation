@@ -7,6 +7,11 @@ Eigen::Vector3d transformLinearAcceleration(const Eigen::Vector3d& a, const Eige
     return tf.linear() * (a + w.cross(w.cross(tf.translation())));
 }
 
+Eigen::Vector3d transformLinearVelocity(const Eigen::Vector3d& v, const Eigen::Vector3d& w,
+                                        const Eigen::Isometry3d& tf) {
+    return tf.linear() * v + (tf.linear() * w).cross(tf.translation());
+}
+
 Eigen::Vector3d transformAngularVelocity(const Eigen::Vector3d& w, const Eigen::Matrix3d& R) {
     return R * w;
 }

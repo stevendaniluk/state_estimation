@@ -49,6 +49,44 @@ TEST(LinearAccelerationTransformations, CentripetalComponentAddedToAcceleration)
         << "Target: " << a_target.transpose() << ", Actual: " << a_result.transpose();
 }
 
+TEST(LinearVelocityTransformations, IdentityTransformDoesNotModifyVelocity) {
+    Eigen::Vector3d v(3.14159, 2.71828, 1.61803);
+    Eigen::Vector3d w(11, 22, 33);
+    Eigen::Vector3d v_result = transformLinearVelocity(v, w, Eigen::Isometry3d::Identity());
+
+    EXPECT_TRUE(v_result.isApprox(v, 1e-6))
+        << "Target: " << v.transpose() << ", Actual: " << v_result.transpose();
+}
+
+TEST(LinearVelocityTransformations, ZeroTranslationOnlyRotatesVelocity) {
+    Eigen::Vector3d v(3.14159, 2.71828, 1.61803);
+    Eigen::Vector3d w(11, 22, 33);
+    Eigen::Isometry3d tf = Eigen::Isometry3d::Identity();
+    tf.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(0.1, Eigen::Vector3d::UnitZ()) *
+                                  Eigen::AngleAxisd(0.2, Eigen::Vector3d::UnitX()));
+
+    Eigen::Vector3d v_target = tf.linear() * v;
+
+    Eigen::Vector3d v_result = transformLinearVelocity(v, w, tf);
+
+    EXPECT_TRUE(v_result.isApprox(v_target, 1e-6))
+        << "Target: " << v_target.transpose() << ", Actual: " << v_result.transpose();
+}
+
+TEST(LinearVelocityTransformations, TangentialVelocityAdded) {
+    Eigen::Vector3d v(3.14159, 2.71828, 1.61803);
+    Eigen::Vector3d w(11, 22, 33);
+    Eigen::Isometry3d tf = Eigen::Isometry3d::Identity();
+    tf.translation() << 1, 2, 3;
+
+    Eigen::Vector3d v_target = v + w.cross(tf.translation());
+
+    Eigen::Vector3d v_result = transformLinearVelocity(v, w, tf);
+
+    EXPECT_TRUE(v_result.isApprox(v_target, 1e-6))
+        << "Target: " << v_target.transpose() << ", Actual: " << v_result.transpose();
+}
+
 TEST(AngularVelocityTransformations, IdentityRotationDoesNotModifyVelocity) {
     Eigen::Vector3d w_target(3.14159, 2.71828, 1.61803);
     Eigen::Matrix3d R = Eigen::Matrix3d::Identity();
