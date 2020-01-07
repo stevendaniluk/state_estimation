@@ -59,7 +59,7 @@ void UKF::myCorrect(const Eigen::VectorXd& z,
     // Generate the sigma points and run them through the measurement model
     Eigen::MatrixXd sigma_offset =
         ((system_model_->stateSize() + lambda_) * filter_state_.covariance).llt().matrixL();
-    Eigen::MatrixXd sigma_pts(model->measurementSize(), num_sigma_pts_);
+    Eigen::MatrixXd sigma_pts(system_model_->stateSize(), num_sigma_pts_);
     Eigen::MatrixXd observed_sigma_pts(model->measurementSize(), num_sigma_pts_);
 
     sigma_pts.col(0) = filter_state_.x;
@@ -67,14 +67,16 @@ void UKF::myCorrect(const Eigen::VectorXd& z,
     observed_sigma_pts.col(0) = model->h();
 
     for (uint32_t i = 0; i < system_model_->stateSize(); ++i) {
-        sigma_pts.col(i + 1) = system_model_->addVectors(filter_state_.x, sigma_offset.col(i));
-        model->update(sigma_pts.col(i + 1));
-        observed_sigma_pts.col(i + 1) = model->h();
+        const uint32_t i_high = i + 1;
+        const uint32_t i_low = i + 1 + system_model_->stateSize();
 
-        sigma_pts.col(i + 1 + model->measurementSize()) =
-            system_model_->subtractVectors(filter_state_.x, sigma_offset.col(i));
-        model->update(sigma_pts.col(i + 1 + model->measurementSize()));
-        observed_sigma_pts.col(i + 1 + model->measurementSize()) = model->h();
+        sigma_pts.col(i_high) = system_model_->addVectors(filter_state_.x, sigma_offset.col(i));
+        model->update(sigma_pts.col(i_high));
+        observed_sigma_pts.col(i_high) = model->h();
+
+        sigma_pts.col(i_low) = system_model_->subtractVectors(filter_state_.x, sigma_offset.col(i));
+        model->update(sigma_pts.col(i_low));
+        observed_sigma_pts.col(i_low) = model->h();
     }
 
     // Compute the weighted mean for the predicted measurement
@@ -88,7 +90,7 @@ void UKF::myCorrect(const Eigen::VectorXd& z,
     }
 
     Eigen::MatrixXd cross_covariance =
-        Eigen::MatrixXd::Zero(model->measurementSize(), model->measurementSize());
+        Eigen::MatrixXd::Zero(model->stateSize(), model->measurementSize());
     for (uint32_t i = 0; i < num_sigma_pts_; ++i) {
         const Eigen::VectorXd dx =
             system_model_->subtractVectors(sigma_pts.col(i), sigma_pts.col(0));
@@ -138,15 +140,18 @@ void UKF::UKFPredictionUpdate(double dt, bool control, Eigen::VectorXd u) {
     sigma_pts.col(0) = system_model_->g();
 
     for (uint32_t i = 0; i < system_model_->stateSize(); ++i) {
+        const uint32_t i_high = i + 1;
+        const uint32_t i_low = i + 1 + system_model_->stateSize();
+
         const Eigen::VectorXd x_high =
             system_model_->addVectors(filter_state_.x, sigma_offset.col(i));
         updateSystemModel(x_high, dt, control, u);
-        sigma_pts.col(i + 1) = system_model_->g();
+        sigma_pts.col(i_high) = system_model_->g();
 
         const Eigen::VectorXd x_low =
             system_model_->subtractVectors(filter_state_.x, sigma_offset.col(i));
         updateSystemModel(x_low, dt, control, u);
-        sigma_pts.col(i + 1 + system_model_->stateSize()) = system_model_->g();
+        sigma_pts.col(i_low) = system_model_->g();
     }
 
     // Compute the weighted mean
