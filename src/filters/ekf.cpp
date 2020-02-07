@@ -38,6 +38,7 @@ void EKF::myCorrect(const Eigen::VectorXd& z,
               << printMatrix(model->covariance()) << std::endl
               << "K=" << std::endl
               << printMatrix(K) << std::endl
+              << "Innovation=" << printMatrix(dx) << std::endl
               << "x=" << printMatrix(filter_state_.x) << std::endl
               << "Covariance=" << std::endl
               << printMatrix(filter_state_.covariance) << std::endl;
