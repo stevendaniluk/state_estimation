@@ -20,7 +20,8 @@ class MeasurementModel : public FilterModel {
     //
     // @param n: State dimensions
     // @param k: Measurement dimentions
-    MeasurementModel(uint32_t n, uint32_t k);
+    // @param compute_covariance: When true the covariance will be computed on each update
+    MeasurementModel(uint32_t n, uint32_t k, bool compute_covariance);
 
     // update
     //
@@ -43,6 +44,8 @@ class MeasurementModel : public FilterModel {
     Eigen::MatrixXd Q_;
     // Dimension of the measurement vector
     uint32_t meas_dims_;
+    // Flag for if the covariance should be updated internally by the model, or set externally
+    bool compute_covariance_;
 };
 
 }  // namespace state_estimation

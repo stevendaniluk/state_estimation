@@ -39,7 +39,7 @@ class SampleMeasurementModel
     : public state_estimation::measurement_models::NonlinearMeasurementModel {
   public:
     SampleMeasurementModel(uint32_t n, uint32_t k)
-        : NonlinearMeasurementModel::NonlinearMeasurementModel(n, k) {
+        : NonlinearMeasurementModel::NonlinearMeasurementModel(n, k, false, false) {
         H_ = Eigen::MatrixXd::Identity(k, n);
     }
 

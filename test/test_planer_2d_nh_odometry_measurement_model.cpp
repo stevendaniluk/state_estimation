@@ -8,7 +8,7 @@ using namespace state_estimation;
 using namespace planer_2d;
 
 TEST(Planer2DNhOdometryMeasurementModel, PredictedMeasurementDirectlyFromState) {
-    measurement_models::Planer2DNhOdometry model;
+    measurement_models::Planer2DNhOdometry model(false, false);
 
     double dt = 0.1;
     Eigen::VectorXd x(state::DIMS);
@@ -23,7 +23,7 @@ TEST(Planer2DNhOdometryMeasurementModel, PredictedMeasurementDirectlyFromState) 
 }
 
 TEST(Planer2DNhOdometryMeasurementModel, JacobianUnityOnlyForMeasurementVariables) {
-    measurement_models::Planer2DNhOdometry model;
+    measurement_models::Planer2DNhOdometry model(false, true);
 
     double dt = 0.1;
     Eigen::VectorXd x(state::DIMS);
@@ -43,7 +43,7 @@ TEST(Planer2DNhOdometryMeasurementModel, JacobianUnityOnlyForMeasurementVariable
 }
 
 TEST(Planer2DImuMeasurementModel, JacobianMatchesNumericalApproximation) {
-    measurement_models::Planer2DNhOdometry model;
+    measurement_models::Planer2DNhOdometry model(false, true);
 
     Eigen::VectorXd x(state::DIMS);
     x(state::VX) = 3.14159;

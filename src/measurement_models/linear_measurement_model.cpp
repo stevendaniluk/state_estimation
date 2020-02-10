@@ -3,8 +3,8 @@
 namespace state_estimation {
 namespace measurement_models {
 
-LinearMeasurementModel::LinearMeasurementModel(uint32_t n, uint32_t k)
-    : MeasurementModel::MeasurementModel(n, k)
+LinearMeasurementModel::LinearMeasurementModel(uint32_t n, uint32_t k, bool compute_covariance)
+    : MeasurementModel::MeasurementModel(n, k, compute_covariance)
     , C_(Eigen::MatrixXd::Zero(k, n)) {}
 
 Eigen::MatrixXd LinearMeasurementModel::C() const {

@@ -2,7 +2,7 @@
 
 namespace state_estimation {
 
-MeasurementModel::MeasurementModel(uint32_t n, uint32_t k)
+MeasurementModel::MeasurementModel(uint32_t n, uint32_t k, bool compute_covariance)
     : FilterModel::FilterModel(n)
     , meas_dims_(k) {
     cov_ = Eigen::MatrixXd::Zero(k, k);

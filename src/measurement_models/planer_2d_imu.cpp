@@ -7,9 +7,10 @@
 namespace state_estimation {
 namespace measurement_models {
 
-Planer2DImu::Planer2DImu(bool compute_jacobian, bool include_gravity, double gravity)
+Planer2DImu::Planer2DImu(bool compute_covariance, bool compute_jacobian, bool include_gravity,
+                         double gravity)
     : NonlinearMeasurementModel::NonlinearMeasurementModel(planer_2d::state::DIMS, meas::imu::DIMS,
-                                                           compute_jacobian)
+                                                           compute_covariance, compute_jacobian)
     , include_gravity_(include_gravity)
     , gravity_(gravity) {}
 

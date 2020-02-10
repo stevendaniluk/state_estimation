@@ -21,7 +21,8 @@ class LinearMeasurementModel : public MeasurementModel {
     //
     // @param n: State dimensions
     // @param k: Measurement dimentions
-    LinearMeasurementModel(uint32_t n, uint32_t k);
+    // @param compute_covariance: When true the covariance will be computed on each update
+    LinearMeasurementModel(uint32_t n, uint32_t k, bool compute_covariance);
 
     // C
     //

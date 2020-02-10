@@ -7,9 +7,9 @@ namespace measurement_models {
 
 using namespace planer_2d;
 
-Planer2DNhOdometry::Planer2DNhOdometry(bool compute_jacobian)
+Planer2DNhOdometry::Planer2DNhOdometry(bool compute_covariance, bool compute_jacobian)
     : NonlinearMeasurementModel::NonlinearMeasurementModel(state::DIMS, meas::nh_odom::DIMS,
-                                                           compute_jacobian) {
+                                                           compute_covariance, compute_jacobian) {
     // We're directly observing linear and angular velocity so these entries in the Jacobian are
     // unity
     H_(meas::nh_odom::VX, state::VX) = 1;

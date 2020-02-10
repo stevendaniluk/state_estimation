@@ -14,10 +14,11 @@ class Planer2DImu : public NonlinearMeasurementModel {
   public:
     // Constructor
     //
+    // @param compute_covariance: When true the covariance will be computed on each update
     // @param compute_jacobian: When true the Jacobian, G, will be computed during the update step
     // @param include_gravity: When true gravity will be included in the predicted measurement and
     //                         measurement Jacobian
-    Planer2DImu(bool compute_jacobian = false, bool include_gravity = true,
+    Planer2DImu(bool compute_covariance, bool compute_jacobian, bool include_gravity = true,
                 double gravity = 9.80665);
 
   protected:

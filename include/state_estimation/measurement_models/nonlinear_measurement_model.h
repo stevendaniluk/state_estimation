@@ -22,8 +22,10 @@ class NonlinearMeasurementModel : public MeasurementModel {
     //
     // @param n: State dimensions
     // @param k: Measurement dimentions
+    // @param compute_covariance: When true the covariance will be computed on each update
     // @param compute_jacobian: When true the Jacobian, G, will be computed during the update step
-    NonlinearMeasurementModel(uint32_t n, uint32_t k, bool compute_jacobian = false);
+    NonlinearMeasurementModel(uint32_t n, uint32_t k, bool compute_covariance,
+                              bool compute_jacobian);
 
     // h
     //

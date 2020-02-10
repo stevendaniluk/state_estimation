@@ -16,8 +16,9 @@ class Planer2DNhOdometry : public NonlinearMeasurementModel {
   public:
     // Constructor
     //
+    // @param compute_covariance: When true the covariance will be computed on each update
     // @param compute_jacobian: When true the Jacobian, G, will be computed during the update step
-    Planer2DNhOdometry(bool compute_jacobian = false);
+    Planer2DNhOdometry(bool compute_covariance, bool compute_jacobian);
 
   protected:
     void myUpdate(const Eigen::VectorXd& x, double dt) override;

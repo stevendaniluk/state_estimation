@@ -33,7 +33,7 @@ class KFSampleSystemModel : public system_models::LinearSystemModel {
 class KFSampleMeasurementModel : public measurement_models::LinearMeasurementModel {
   public:
     KFSampleMeasurementModel(uint32_t n, uint32_t k)
-        : LinearMeasurementModel::LinearMeasurementModel(n, k) {
+        : LinearMeasurementModel::LinearMeasurementModel(n, k, false) {
         setC(Eigen::MatrixXd::Identity(k, n));
     }
 

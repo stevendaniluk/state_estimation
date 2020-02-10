@@ -31,7 +31,7 @@ class TestFilterSystemModel : public SystemModel {
 class TestFilterMeasurementModel : public MeasurementModel {
   public:
     TestFilterMeasurementModel()
-        : MeasurementModel::MeasurementModel(3, 3) {}
+        : MeasurementModel::MeasurementModel(3, 3, false) {}
 
     Eigen::VectorXd prediction() { return z_pred_; }
 

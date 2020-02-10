@@ -3,8 +3,9 @@
 namespace state_estimation {
 namespace measurement_models {
 
-NonlinearMeasurementModel::NonlinearMeasurementModel(uint32_t n, uint32_t k, bool compute_jacobian)
-    : MeasurementModel::MeasurementModel(n, k)
+NonlinearMeasurementModel::NonlinearMeasurementModel(uint32_t n, uint32_t k,
+                                                     bool compute_covariance, bool compute_jacobian)
+    : MeasurementModel::MeasurementModel(n, k, compute_covariance)
     , compute_jacobian_(compute_jacobian)
     , z_pred_(Eigen::VectorXd::Zero(k))
     , H_(Eigen::MatrixXd::Zero(k, n)) {}
