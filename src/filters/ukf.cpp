@@ -46,12 +46,54 @@ void UKF::initializeSigmaPointParameters() {
     setSigmaPointParameters(0.001, 0, 2);
 }
 
-void UKF::myPredict(double dt) {
-    UKFPredictionUpdate(dt, false);
-}
-
 void UKF::myPredict(const Eigen::VectorXd& u, double dt) {
-    UKFPredictionUpdate(dt, true, u);
+    // Generate the sigma points and run them through the system model
+    const Eigen::MatrixXd sigma_offset =
+        ((system_model_->stateSize() + lambda_) * filter_state_.covariance).llt().matrixL();
+    Eigen::MatrixXd sigma_pts(system_model_->stateSize(), num_sigma_pts_);
+
+    system_model_->update(filter_state_.x, u, dt);
+    Eigen::VectorXd x = system_model_->g();
+    sigma_pts.col(0) = system_model_->g();
+
+    for (uint32_t i = 0; i < system_model_->stateSize(); ++i) {
+        const uint32_t i_high = i + 1;
+        const uint32_t i_low = i + 1 + system_model_->stateSize();
+
+        const Eigen::VectorXd x_high =
+            system_model_->addVectors(filter_state_.x, sigma_offset.col(i));
+        system_model_->update(x_high, u, dt);
+        sigma_pts.col(i_high) = system_model_->g();
+
+        const Eigen::VectorXd x_low =
+            system_model_->subtractVectors(filter_state_.x, sigma_offset.col(i));
+        system_model_->update(x_low, u, dt);
+        sigma_pts.col(i_low) = system_model_->g();
+    }
+
+    // Compute the weighted mean
+    filter_state_.x = system_model_->weightedSum(w_mean_, sigma_pts);
+
+    // Compute the weighted covariance
+    filter_state_.covariance = system_model_->covariance();
+    for (uint32_t i = 0; i < num_sigma_pts_; ++i) {
+        const Eigen::VectorXd dx =
+            system_model_->subtractVectors(sigma_pts.col(i), filter_state_.x);
+        filter_state_.covariance += w_cov_(i) * dx * dx.transpose();
+    }
+
+#ifdef DEBUG_STATE_ESTIMATION
+    std::cout << "UKF predicition update:" << std::endl
+              << "Sigma offsets=" << std::endl
+              << printMatrix(sigma_offset) << std::endl
+              << "Sigma points=" << std::endl
+              << printMatrix(sigma_pts) << std::endl
+              << "R=" << std::endl
+              << printMatrix(system_model_->covariance()) << std::endl
+              << "x=" << printMatrix(filter_state_.x) << std::endl
+              << "Covariance=" << std::endl
+              << printMatrix(filter_state_.covariance) << std::endl;
+#endif
 }
 
 void UKF::myCorrect(const Eigen::VectorXd& z, measurement_models::NonlinearMeasurementModel* model,
@@ -127,64 +169,6 @@ void UKF::myCorrect(const Eigen::VectorXd& z, measurement_models::NonlinearMeasu
               << "Covariance=" << std::endl
               << printMatrix(filter_state_.covariance) << std::endl;
 #endif
-}
-
-void UKF::UKFPredictionUpdate(double dt, bool control, Eigen::VectorXd u) {
-    // Generate the sigma points and run them through the system model
-    const Eigen::MatrixXd sigma_offset =
-        ((system_model_->stateSize() + lambda_) * filter_state_.covariance).llt().matrixL();
-    Eigen::MatrixXd sigma_pts(system_model_->stateSize(), num_sigma_pts_);
-
-    updateSystemModel(filter_state_.x, dt, control, u);
-    Eigen::VectorXd x = system_model_->g();
-    sigma_pts.col(0) = system_model_->g();
-
-    for (uint32_t i = 0; i < system_model_->stateSize(); ++i) {
-        const uint32_t i_high = i + 1;
-        const uint32_t i_low = i + 1 + system_model_->stateSize();
-
-        const Eigen::VectorXd x_high =
-            system_model_->addVectors(filter_state_.x, sigma_offset.col(i));
-        updateSystemModel(x_high, dt, control, u);
-        sigma_pts.col(i_high) = system_model_->g();
-
-        const Eigen::VectorXd x_low =
-            system_model_->subtractVectors(filter_state_.x, sigma_offset.col(i));
-        updateSystemModel(x_low, dt, control, u);
-        sigma_pts.col(i_low) = system_model_->g();
-    }
-
-    // Compute the weighted mean
-    filter_state_.x = system_model_->weightedSum(w_mean_, sigma_pts);
-
-    // Compute the weighted covariance
-    filter_state_.covariance = system_model_->covariance();
-    for (uint32_t i = 0; i < num_sigma_pts_; ++i) {
-        const Eigen::VectorXd dx =
-            system_model_->subtractVectors(sigma_pts.col(i), filter_state_.x);
-        filter_state_.covariance += w_cov_(i) * dx * dx.transpose();
-    }
-
-#ifdef DEBUG_STATE_ESTIMATION
-    std::cout << "UKF predicition update:" << std::endl
-              << "Sigma offsets=" << std::endl
-              << printMatrix(sigma_offset) << std::endl
-              << "Sigma points=" << std::endl
-              << printMatrix(sigma_pts) << std::endl
-              << "R=" << std::endl
-              << printMatrix(system_model_->covariance()) << std::endl
-              << "x=" << printMatrix(filter_state_.x) << std::endl
-              << "Covariance=" << std::endl
-              << printMatrix(filter_state_.covariance) << std::endl;
-#endif
-}
-
-void UKF::updateSystemModel(const Eigen::VectorXd& x, double dt, bool control, Eigen::VectorXd u) {
-    if (!control) {
-        system_model_->updateNoControl(x, dt);
-    } else {
-        system_model_->update(x, u, dt);
-    }
 }
 
 }  // namespace state_estimation

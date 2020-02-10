@@ -7,11 +7,12 @@ using namespace planer_2d;
 
 TEST(Planer2DStatePropegation, LinearAccelerationIsDirectlyCopied) {
     double dt = 0.2;
+    Eigen::VectorXd u;
     Eigen::VectorXd x(state::DIMS);
     x << 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 0.111, 0.222;
 
     system_models::Planer2DStatePropegation model;
-    model.updateNoControl(x, dt);
+    model.update(x, u, dt);
 
     EXPECT_FLOAT_EQ(x(state::AX), model.g()(state::AX));
     EXPECT_FLOAT_EQ(x(state::AY), model.g()(state::AY));
@@ -19,22 +20,24 @@ TEST(Planer2DStatePropegation, LinearAccelerationIsDirectlyCopied) {
 
 TEST(Planer2DStatePropegation, AngularVelocityIsDirectlyCopied) {
     double dt = 0.2;
+    Eigen::VectorXd u;
     Eigen::VectorXd x(state::DIMS);
     x << 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 0.111, 0.222;
 
     system_models::Planer2DStatePropegation model;
-    model.updateNoControl(x, dt);
+    model.update(x, u, dt);
 
     EXPECT_FLOAT_EQ(x(state::VPSI), model.g()(state::VPSI));
 }
 
 TEST(Planer2DStatePropegation, HeadingUpdatedWithRate) {
     double dt = 0.2;
+    Eigen::VectorXd u;
     Eigen::VectorXd x(state::DIMS);
     x << 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 0.111, 0.222;
 
     system_models::Planer2DStatePropegation model;
-    model.updateNoControl(x, dt);
+    model.update(x, u, dt);
 
     double target_psi = x(state::PSI) + dt * x(state::VPSI);
     Eigen::VectorXd x_pred = model.g();
@@ -44,11 +47,12 @@ TEST(Planer2DStatePropegation, HeadingUpdatedWithRate) {
 TEST(Planer2DStatePropegation, HeadingWithinIntervalPlusMinusPi) {
     // Setup an initial state that will cross the pi boundary
     double dt = 2.0;
+    Eigen::VectorXd u;
     Eigen::VectorXd x(state::DIMS);
     x << 0, 0, 0, 0, 0, 0, M_PI - 0.1, 0.1;
 
     system_models::Planer2DStatePropegation model;
-    model.updateNoControl(x, dt);
+    model.update(x, u, dt);
 
     double target_psi = -M_PI + 0.1;
 
@@ -60,11 +64,12 @@ TEST(Planer2DStatePropegation, PositionUpdatedWithConstantAccelerationModel) {
     // Create a state with zero heading and yaw rate, so we don't have to worry about state
     // variables being in different frames or orientation.
     double dt = 0.2;
+    Eigen::VectorXd u;
     Eigen::VectorXd x(state::DIMS);
     x << 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 0, 0;
 
     system_models::Planer2DStatePropegation model;
-    model.updateNoControl(x, dt);
+    model.update(x, u, dt);
 
     Eigen::VectorXd pos = x.segment(state::X, 2);
     Eigen::VectorXd vel = x.segment(state::VX, 2);
@@ -85,11 +90,12 @@ TEST(Planer2DStatePropegation, VelocityInInertialFrame) {
     Eigen::Rotation2D<double> rot(psi);
 
     double dt = 0.2;
+    Eigen::VectorXd u;
     Eigen::VectorXd x(state::DIMS);
     x << 1.1, 2.2, 3.3, 4.4, 0, 0, psi, 0;
 
     system_models::Planer2DStatePropegation model;
-    model.updateNoControl(x, dt);
+    model.update(x, u, dt);
 
     Eigen::VectorXd target_pos = x.segment(state::X, 2) + dt * (rot * x.segment(state::VX, 2));
     Eigen::VectorXd actual_pos = model.g().segment(state::X, 2);
@@ -106,11 +112,12 @@ TEST(Planer2DStatePropegation, AccelerationInInertialFrame) {
     Eigen::Rotation2D<double> rot(psi);
 
     double dt = 0.2;
+    Eigen::VectorXd u;
     Eigen::VectorXd x(state::DIMS);
     x << 1.1, 2.2, 0, 0, 3.3, 4.4, psi, 0;
 
     system_models::Planer2DStatePropegation model;
-    model.updateNoControl(x, dt);
+    model.update(x, u, dt);
 
     Eigen::VectorXd target_pos =
         x.segment(state::X, 2) + 0.5 * dt * dt * (rot * x.segment(state::AX, 2));

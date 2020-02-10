@@ -33,15 +33,6 @@ class SystemModel : public FilterModel {
     // @param dt: Duration to step forward in time with the control
     void update(const Eigen::VectorXd& x, const Eigen::VectorXd& u, double dt);
 
-    // updateNoControl
-    //
-    // Updates the system model about the current state by simply propegating the state forward,
-    // without applying a control
-    //
-    // @param x: Current system state
-    // @param dt: Duration to propegate the state forward in time
-    virtual void updateNoControl(const Eigen::VectorXd& x, double dt);
-
     // controlSize
     //
     // @return: Number of control variables
@@ -50,7 +41,6 @@ class SystemModel : public FilterModel {
   protected:
     // Internal implementations of update() and updateNoControl() to be defined by derived classes.
     virtual void myUpdate(const Eigen::VectorXd& x, const Eigen::VectorXd& u, double dt) = 0;
-    virtual void myUpdateNoControl(const Eigen::VectorXd& x, double dt) = 0;
 
     // Dimension of the control vector
     uint32_t control_dims_;

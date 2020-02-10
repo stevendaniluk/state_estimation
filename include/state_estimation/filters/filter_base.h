@@ -132,8 +132,8 @@ class FilterBase {
 
     // predict
     //
-    // Applies a single prediction step to the filter my propegating the current state forward
-    // (no control input).
+    // Applies a single prediction step to the filter using the most recent control input, when not
+    // available a null control input is used instead.
     //
     // If the provided time is in the past, it will be ignored. This will not rewind the state.
     //
@@ -239,7 +239,6 @@ class FilterBase {
 
     // Internal implementation of predict() for derived classes to populate.
     // Note, the time delta is provided instead of the absolute time.
-    virtual void myPredict(double dt) = 0;
     virtual void myPredict(const Eigen::VectorXd& u, double dt) = 0;
 
     // Internal implementation of correct() for derived classes to populate
@@ -249,6 +248,8 @@ class FilterBase {
     Parameters params_;
     // Current state of the filter
     FilterState filter_state_;
+    // The last control input applied
+    Eigen::VectorXd prev_control_;
     // Model describing the system dynamics
     SysT* system_model_;
 

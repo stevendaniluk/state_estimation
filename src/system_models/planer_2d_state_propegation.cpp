@@ -14,10 +14,7 @@ Planer2DStatePropegation::Planer2DStatePropegation(bool compute_jacobian)
 void Planer2DStatePropegation::myUpdate(const Eigen::VectorXd& x, const Eigen::VectorXd& u,
                                         double dt) {
     (void)u;
-    updateNoControl(x, dt);
-}
 
-void Planer2DStatePropegation::myUpdateNoControl(const Eigen::VectorXd& x, double dt) {
     // Compute some constants that we will need
     const double cpsi = std::cos(x(state::PSI));
     const double spsi = std::sin(x(state::PSI));

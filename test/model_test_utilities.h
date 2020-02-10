@@ -21,7 +21,9 @@ void jacobianMatchesNumericalApproximation(system_models::NonlinearSystemModel* 
                                            double epsilon = 1e-6, double tolerance = 1e-3) {
     // Run our reference state through a model, then numerically compute the Jacobian by going
     // through each state variable perturbing it slightly.
-    model->updateNoControl(x, dt);
+    const Eigen::VectorXd u = Eigen::VectorXd::Zero(model->controlSize());
+
+    model->update(x, u, dt);
     Eigen::VectorXd x_pred = model->g();
     Eigen::MatrixXd G_target = model->G();
 
@@ -32,7 +34,7 @@ void jacobianMatchesNumericalApproximation(system_models::NonlinearSystemModel* 
         x_pert(i) += epsilon;
 
         // Run the new state through the model
-        model->updateNoControl(x_pert, dt);
+        model->update(x_pert, u, dt);
 
         // Compute the partial derivative
         G_num.col(i) = (model->g() - x_pred) / epsilon;

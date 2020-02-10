@@ -21,7 +21,6 @@ class EKF : public FilterBase<system_models::NonlinearSystemModel,
     // myPredict
     //
     // Provides the implementation of the prediction step for an EKF.
-    void myPredict(double dt) override;
     void myPredict(const Eigen::VectorXd& u, double dt) override;
 
     // myPredict
@@ -29,12 +28,6 @@ class EKF : public FilterBase<system_models::NonlinearSystemModel,
     // Provides the implementation of the correction step for an EKF.
     void myCorrect(const Eigen::VectorXd& z, measurement_models::NonlinearMeasurementModel* model,
                    double dt) override;
-
-  private:
-    // EKFPredictionUpdate
-    //
-    // Helper to update the state and covariance via the EKF update equations.
-    void EKFPredictionUpdate();
 };
 
 }  // namespace state_estimation

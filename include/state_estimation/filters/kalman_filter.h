@@ -20,7 +20,6 @@ class KalmanFilter : public FilterBase<system_models::LinearSystemModel,
     // myPredict
     //
     // Provides the implementation of the prediction step for a Kalman filter.
-    void myPredict(double dt) override;
     void myPredict(const Eigen::VectorXd& u, double dt) override;
 
     // myPredict
@@ -28,16 +27,6 @@ class KalmanFilter : public FilterBase<system_models::LinearSystemModel,
     // Provides the implementation of the correction step for a Kalman filter.
     void myCorrect(const Eigen::VectorXd& z, measurement_models::LinearMeasurementModel* model,
                    double dt) override;
-
-  private:
-    // KFPredictionUpdate
-    //
-    // Helper to update the state and covariance via the KF update equations.
-    //
-    // @param dt: Time delta
-    // @param control: When true, a control will be processed
-    // @param u: Control vector
-    void KFPredictionUpdate(double dt, bool control, Eigen::VectorXd u = Eigen::VectorXd());
 };
 
 }  // namespace state_estimation

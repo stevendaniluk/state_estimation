@@ -19,9 +19,4 @@ void SystemModel::update(const Eigen::VectorXd& x, const Eigen::VectorXd& u, dou
     myUpdate(x, u, dt);
 }
 
-void SystemModel::updateNoControl(const Eigen::VectorXd& x, double dt) {
-    assert(x.size() == state_dims_);
-    myUpdateNoControl(x, dt);
-}
-
 }  // namespace state_estimation

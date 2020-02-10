@@ -55,6 +55,7 @@ double FilterBase<SysT, MeasT>::getStateTime() const {
 
 template <typename SysT, typename MeasT>
 void FilterBase<SysT, MeasT>::predict(double timestamp) {
+    // No need to apply a prediction if the timestamp is the same
     if (timestamp > filter_state_.timestamp) {
         const FilterInput input(Eigen::VectorXd(), Eigen::MatrixXd(), timestamp, true);
         applyInput(input);
@@ -71,7 +72,9 @@ void FilterBase<SysT, MeasT>::predict(double timestamp) {
 template <typename SysT, typename MeasT>
 void FilterBase<SysT, MeasT>::predict(const Eigen::VectorXd& u, double timestamp) {
     if (!params_.rewind_history) {
-        if (timestamp > filter_state_.timestamp) {
+        // Will still want to enable applying a prediction for a zero dt so that so that any
+        // possible control updates can occur
+        if (timestamp >= filter_state_.timestamp) {
             const FilterInput input(u, Eigen::MatrixXd(), timestamp, true);
             applyInput(input);
             pruneHistory();
@@ -317,22 +320,28 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
     if (input.is_control) {
         if (!(system_model_->checkStationary() &&
               system_model_->isStationary(filter_state_.x, input.data))) {
+            // Need to determine what control input to use
+            Eigen::VectorXd u;
+            if (input.data.size() > 0) {
+                u = input.data;
+                prev_control_ = u;
+            } else if (prev_control_.size() > 0) {
+                u = prev_control_;
+            } else {
+                u = Eigen::VectorXd::Zero(system_model_->controlSize());
+            }
+
 #ifdef DEBUG_STATE_ESTIMATION
             std::cout << "Applying prediction:" << std::endl
                       << "t=" << std::to_string(input.timestamp) << "s (dt=" << std::to_string(dt)
                       << ")" << std::endl
-                      << "u=" << printMatrix(input.data) << std::endl
+                      << "u=" << printMatrix(u) << std::endl
                       << "x=" << printMatrix(filter_state_.x) << std::endl
                       << "covariance=" << std::endl
                       << printMatrix(filter_state_.covariance) << std::endl;
 #endif
 
-            // Update as normal
-            if (input.data.size() > 0) {
-                myPredict(input.data, dt);
-            } else {
-                myPredict(dt);
-            }
+            myPredict(u, dt);
         } else {
             system_model_->processStationaryInput(filter_state_.x, input.data);
             system_model_->makeStationary(&filter_state_.x, &filter_state_.covariance);
@@ -349,7 +358,15 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
                 std::cout << "Advancing state x=" << printMatrix(filter_state_.x) << " by " << dt
                           << "s before applying correction" << std::endl;
 #endif
-                myPredict(dt);
+
+                Eigen::VectorXd u;
+                if (prev_control_.size() > 0) {
+                    u = prev_control_;
+                } else {
+                    u = Eigen::VectorXd::Zero(system_model_->controlSize());
+                }
+
+                myPredict(u, dt);
             } else {
                 system_model_->processStationaryInput(filter_state_.x, Eigen::VectorXd());
                 system_model_->makeStationary(&filter_state_.x, &filter_state_.covariance);

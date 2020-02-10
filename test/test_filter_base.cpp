@@ -20,8 +20,6 @@ class TestFilterSystemModel : public SystemModel {
         x_pred_ = x + dt * x + u;
     }
 
-    void myUpdateNoControl(const Eigen::VectorXd& x, double dt) override { x_pred_ = x + dt * x; }
-
     Eigen::VectorXd x_pred_;
 };
 
@@ -53,11 +51,6 @@ class TestFilter : public FilterBase<TestFilterSystemModel, TestFilterMeasuremen
     using FilterBase<TestFilterSystemModel, TestFilterMeasurementModel>::FilterBase;
 
   protected:
-    void myPredict(double dt) override {
-        system_model_->updateNoControl(getState(), dt);
-        filter_state_.x = system_model_->prediction();
-    }
-
     void myPredict(const Eigen::VectorXd& control, double dt) override {
         system_model_->update(getState(), control, dt);
         filter_state_.x = system_model_->prediction();
@@ -115,7 +108,8 @@ TEST_F(FilterBaseTest, CorrectAdvancesStateBeforeCorrecting) {
     Eigen::VectorXd z = vec_222;
 
     TestFilterSystemModel ref_system_model;
-    ref_system_model.updateNoControl(x_i, dt);
+    Eigen::VectorXd u_null = Eigen::VectorXd::Zero(ref_system_model.controlSize());
+    ref_system_model.update(x_i, u_null, dt);
     Eigen::VectorXd x_pred = ref_system_model.prediction();
 
     TestFilterMeasurementModel ref_meas_model;
@@ -136,7 +130,8 @@ TEST_F(FilterBaseTest, MeasurementQueueAdvancesStateBeforeCorrecting) {
     Eigen::VectorXd z = vec_222;
 
     TestFilterSystemModel ref_system_model;
-    ref_system_model.updateNoControl(x_i, dt);
+    Eigen::VectorXd u_null = Eigen::VectorXd::Zero(ref_system_model.controlSize());
+    ref_system_model.update(x_i, u_null, dt);
     Eigen::VectorXd x_pred = ref_system_model.prediction();
 
     TestFilterMeasurementModel ref_meas_model;
@@ -286,14 +281,8 @@ TEST_F(FilterBaseTest, PredictNoControlIgnoresTimestampNotInTheFuture) {
         << "Target: " << x_i.transpose() << ", Actual: " << filter->getState().transpose();
 }
 
-TEST_F(FilterBaseTest, PredictIgnoresTimestampNotInTheFuture) {
-    // The filter has a non zero state so our mock system model will change it for a non zero
-    // time advancement. It also does not have any prior history before so it cannot rewind and re
-    // apply inputs
-    filter->predict(vec_222, t_i);
-    EXPECT_TRUE(filter->getState().isApprox(x_i, 1e-6))
-        << "Target: " << x_i.transpose() << ", Actual: " << filter->getState().transpose();
-
+TEST_F(FilterBaseTest, PredictIgnoresTimestampInThePast) {
+    // The filter does not have any prior history before so it cannot rewind and re apply inputs
     filter->predict(vec_222, t_i - 0.001);
     EXPECT_TRUE(filter->getState().isApprox(x_i, 1e-6))
         << "Target: " << x_i.transpose() << ", Actual: " << filter->getState().transpose();

@@ -24,8 +24,6 @@ class Planer2DStatePropegation : public NonlinearSystemModel {
   protected:
     void myUpdate(const Eigen::VectorXd& x, const Eigen::VectorXd& u, double dt) override;
 
-    void myUpdateNoControl(const Eigen::VectorXd& x, double dt) override;
-
     Eigen::VectorXd addVectors(const Eigen::VectorXd& lhs,
                                const Eigen::VectorXd& rhs) const override;
 

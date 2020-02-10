@@ -20,12 +20,7 @@ class SampleSystemModel : public state_estimation::system_models::NonlinearSyste
 
   protected:
     void myUpdate(const Eigen::VectorXd& x, const Eigen::VectorXd& u, double dt) override {
-        myUpdateNoControl(x, dt);
-        x_pred_ += dt * u;
-    }
-
-    void myUpdateNoControl(const Eigen::VectorXd& x, double dt) override {
-        x_pred_ = x.array().pow(N).matrix() + dt * Eigen::Vector2d::Ones(stateSize());
+        x_pred_ = x.array().pow(N).matrix() + dt * Eigen::Vector2d::Ones(stateSize()) + dt * u;
     }
 };
 

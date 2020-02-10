@@ -19,10 +19,6 @@ class KFSampleSystemModel : public system_models::LinearSystemModel {
 
   protected:
     void myUpdate(const Eigen::VectorXd& x, const Eigen::VectorXd& u, double dt) override {
-        updateNoControl(x, dt);
-    }
-
-    void myUpdateNoControl(const Eigen::VectorXd& x, double dt) override {
         setB(dt * Eigen::MatrixXd::Identity(x.size(), x.size()));
     }
 };

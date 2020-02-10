@@ -38,7 +38,6 @@ class UKF : public FilterBase<system_models::NonlinearSystemModel,
     // myPredict
     //
     // Provides the implementation of the prediction step for an UKF.
-    void myPredict(double dt) override;
     void myPredict(const Eigen::VectorXd& u, double dt) override;
 
     // myPredict
@@ -55,28 +54,6 @@ class UKF : public FilterBase<system_models::NonlinearSystemModel,
     Eigen::VectorXd w_mean_;
     // Weights used for updating the covariance estimate
     Eigen::VectorXd w_cov_;
-
-  private:
-    // UKFPredictionUpdate
-    //
-    // Helper to update the state and covariance via the UKF update equations.
-    //
-    // @param dt: Time delta
-    // @param control: When true, a control will be processed
-    // @param u: Control vector
-    void UKFPredictionUpdate(double dt, bool control, Eigen::VectorXd u = Eigen::VectorXd());
-
-    // updateSystemModel
-    //
-    // Helper for updating the system model that can provide the same interface regardless of
-    // whether a control is used or not
-    //
-    // @param x: State to update with
-    // @param dt: Time delta
-    // @param control: When true, a control will be processed
-    // @param u: Control vector
-    void updateSystemModel(const Eigen::VectorXd& x, double dt, bool control,
-                           Eigen::VectorXd u = Eigen::VectorXd());
 };
 
 }  // namespace state_estimation
