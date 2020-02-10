@@ -334,6 +334,7 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
                 myPredict(dt);
             }
         } else {
+            system_model_->processStationaryInput(filter_state_.x, input.data);
             system_model_->makeStationary(&filter_state_.x, &filter_state_.covariance);
 #ifdef DEBUG_STATE_ESTIMATION
             std::cout << "System is stationary" << std::endl;
@@ -352,6 +353,7 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
                   system_model_->isStationary(filter_state_.x, Eigen::VectorXd()))) {
                 myPredict(dt);
             } else {
+                system_model_->processStationaryInput(filter_state_.x, Eigen::VectorXd());
                 system_model_->makeStationary(&filter_state_.x, &filter_state_.covariance);
 #ifdef DEBUG_STATE_ESTIMATION
                 std::cout << "System is stationary" << std::endl;
@@ -376,6 +378,7 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
               input.model->isStationary(filter_state_.x, input.data))) {
             myCorrect(input.data, input.model);
         } else {
+            input.model->processStationaryInput(filter_state_.x, input.data);
             input.model->makeStationary(&filter_state_.x, &filter_state_.covariance);
 #ifdef DEBUG_STATE_ESTIMATION
             std::cout << "System is stationary" << std::endl;

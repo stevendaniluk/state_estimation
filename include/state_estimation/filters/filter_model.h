@@ -73,6 +73,15 @@ class FilterModel {
     void setMakeStationaryFunction(
         const std::function<void(Eigen::VectorXd*, Eigen::MatrixXd*)>& f);
 
+    // processStationaryInput
+    //
+    // Optional method to perform some action upon receiving a stationary state (e.g. updating
+    // biases).
+    //
+    // @param x: Stationary state
+    // @param data: Control/Measurement
+    virtual void processStationaryInput(const Eigen::VectorXd& x, const Eigen::VectorXd& data) {}
+
     // addVectors
     //
     // Provides the addition operation for two vectors. This is by default simply lhs + rhs,
