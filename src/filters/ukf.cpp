@@ -54,8 +54,8 @@ void UKF::myPredict(const Eigen::VectorXd& u, double dt) {
     UKFPredictionUpdate(dt, true, u);
 }
 
-void UKF::myCorrect(const Eigen::VectorXd& z,
-                    measurement_models::NonlinearMeasurementModel* model) {
+void UKF::myCorrect(const Eigen::VectorXd& z, measurement_models::NonlinearMeasurementModel* model,
+                    double dt) {
     // Generate the sigma points and run them through the measurement model
     Eigen::MatrixXd sigma_offset =
         ((system_model_->stateSize() + lambda_) * filter_state_.covariance).llt().matrixL();
@@ -63,7 +63,7 @@ void UKF::myCorrect(const Eigen::VectorXd& z,
     Eigen::MatrixXd observed_sigma_pts(model->measurementSize(), num_sigma_pts_);
 
     sigma_pts.col(0) = filter_state_.x;
-    model->update(filter_state_.x);
+    model->update(filter_state_.x, dt);
     observed_sigma_pts.col(0) = model->h();
 
     for (uint32_t i = 0; i < system_model_->stateSize(); ++i) {
@@ -71,11 +71,11 @@ void UKF::myCorrect(const Eigen::VectorXd& z,
         const uint32_t i_low = i + 1 + system_model_->stateSize();
 
         sigma_pts.col(i_high) = system_model_->addVectors(filter_state_.x, sigma_offset.col(i));
-        model->update(sigma_pts.col(i_high));
+        model->update(sigma_pts.col(i_high), dt);
         observed_sigma_pts.col(i_high) = model->h();
 
         sigma_pts.col(i_low) = system_model_->subtractVectors(filter_state_.x, sigma_offset.col(i));
-        model->update(sigma_pts.col(i_low));
+        model->update(sigma_pts.col(i_low), dt);
         observed_sigma_pts.col(i_low) = model->h();
     }
 

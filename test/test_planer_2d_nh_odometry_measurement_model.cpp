@@ -10,11 +10,12 @@ using namespace planer_2d;
 TEST(Planer2DNhOdometryMeasurementModel, PredictedMeasurementDirectlyFromState) {
     measurement_models::Planer2DNhOdometry model;
 
+    double dt = 0.1;
     Eigen::VectorXd x(state::DIMS);
     x(state::VX) = 3.14159;
     x(state::VPSI) = 2.71828;
 
-    model.update(x);
+    model.update(x, dt);
     Eigen::VectorXd z_pred = model.h();
 
     EXPECT_FLOAT_EQ(x(state::VX), z_pred(meas::nh_odom::VX));
@@ -24,11 +25,12 @@ TEST(Planer2DNhOdometryMeasurementModel, PredictedMeasurementDirectlyFromState) 
 TEST(Planer2DNhOdometryMeasurementModel, JacobianUnityOnlyForMeasurementVariables) {
     measurement_models::Planer2DNhOdometry model;
 
+    double dt = 0.1;
     Eigen::VectorXd x(state::DIMS);
     x(state::VX) = 3.14159;
     x(state::VPSI) = 2.71828;
 
-    model.update(x);
+    model.update(x, dt);
     Eigen::MatrixXd H = model.H();
 
     Eigen::MatrixXd H_target = Eigen::MatrixXd::Zero(meas::nh_odom::DIMS, state::DIMS);
@@ -46,6 +48,7 @@ TEST(Planer2DImuMeasurementModel, JacobianMatchesNumericalApproximation) {
     Eigen::VectorXd x(state::DIMS);
     x(state::VX) = 3.14159;
     x(state::VPSI) = 2.71828;
+    double dt = 0.1;
 
-    jacobianMatchesNumericalApproximation(&model, x);
+    jacobianMatchesNumericalApproximation(&model, x, dt);
 }

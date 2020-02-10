@@ -21,7 +21,7 @@ class Planer2DImu : public NonlinearMeasurementModel {
                 double gravity = 9.80665);
 
   protected:
-    void myUpdate(const Eigen::VectorXd& x) override;
+    void myUpdate(const Eigen::VectorXd& x, double dt) override;
 
     // Flag for if gravity should be included in the measurement
     bool include_gravity_;

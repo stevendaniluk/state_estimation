@@ -13,7 +13,7 @@ Planer2DImu::Planer2DImu(bool compute_jacobian, bool include_gravity, double gra
     , include_gravity_(include_gravity)
     , gravity_(gravity) {}
 
-void Planer2DImu::myUpdate(const Eigen::VectorXd& x) {
+void Planer2DImu::myUpdate(const Eigen::VectorXd& x, double dt) {
     // Form 3d versions of our state info
     Eigen::Vector3d a(x(planer_2d::state::AX), x(planer_2d::state::AY), 0);
     Eigen::Vector3d w(0, 0, x(planer_2d::state::VPSI));

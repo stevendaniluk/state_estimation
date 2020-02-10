@@ -12,9 +12,9 @@ void KalmanFilter::myPredict(const Eigen::VectorXd& u, double dt) {
 }
 
 void KalmanFilter::myCorrect(const Eigen::VectorXd& z,
-                             measurement_models::LinearMeasurementModel* model) {
+                             measurement_models::LinearMeasurementModel* model, double dt) {
     // Update our measurement model
-    model->update(filter_state_.x);
+    model->update(filter_state_.x, dt);
 
     // Compute the Kalman gain
     const Eigen::MatrixXd cov_C_T = filter_state_.covariance * model->C().transpose();

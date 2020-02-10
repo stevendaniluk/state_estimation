@@ -20,7 +20,7 @@ class Planer2DNhOdometry : public NonlinearMeasurementModel {
     Planer2DNhOdometry(bool compute_jacobian = false);
 
   protected:
-    void myUpdate(const Eigen::VectorXd& x) override;
+    void myUpdate(const Eigen::VectorXd& x, double dt) override;
 };
 
 }  // namespace measurement_models

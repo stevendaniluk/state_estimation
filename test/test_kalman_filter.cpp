@@ -38,7 +38,7 @@ class KFSampleMeasurementModel : public measurement_models::LinearMeasurementMod
     }
 
   protected:
-    void myUpdate(const Eigen::VectorXd& x) override {}
+    void myUpdate(const Eigen::VectorXd& x, double dt) override {}
 };
 
 // Pass in our filter, system and measurement types to the filter test fixture

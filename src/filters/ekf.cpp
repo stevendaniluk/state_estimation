@@ -13,10 +13,10 @@ void EKF::myPredict(const Eigen::VectorXd& u, double dt) {
     EKFPredictionUpdate();
 }
 
-void EKF::myCorrect(const Eigen::VectorXd& z,
-                    measurement_models::NonlinearMeasurementModel* model) {
+void EKF::myCorrect(const Eigen::VectorXd& z, measurement_models::NonlinearMeasurementModel* model,
+                    double dt) {
     // Update our measurement model
-    model->update(filter_state_.x);
+    model->update(filter_state_.x, dt);
 
     // Compute the Kalman gain
     const Eigen::MatrixXd cov_H_T = filter_state_.covariance * model->H().transpose();

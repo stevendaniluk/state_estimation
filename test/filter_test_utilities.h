@@ -44,7 +44,7 @@ class SampleMeasurementModel
     }
 
   protected:
-    void myUpdate(const Eigen::VectorXd& x) override {
+    void myUpdate(const Eigen::VectorXd& x, double dt) override {
         z_pred_ = x;
         if (N > 1) {
             Eigen::VectorXd offset = 1e-2 * x.array().pow(N).matrix();

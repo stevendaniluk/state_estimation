@@ -8,9 +8,10 @@ using namespace state_estimation;
 
 TEST(Planer2DImuMeasurementModel, StationaryStateProducesZeroMeasurement) {
     measurement_models::Planer2DImu model(false, false);
+    double dt = 0.1;
 
     Eigen::VectorXd x = Eigen::VectorXd::Zero(planer_2d::state::DIMS);
-    model.update(x);
+    model.update(x, dt);
     Eigen::VectorXd z_pred = model.h();
 
     Eigen::VectorXd z_target = Eigen::VectorXd::Zero(meas::imu::DIMS);
@@ -21,9 +22,10 @@ TEST(Planer2DImuMeasurementModel, StationaryStateProducesZeroMeasurement) {
 
 TEST(Planer2DImuMeasurementModel, StationaryStateWithGravity) {
     measurement_models::Planer2DImu model(false, true);
+    double dt = 0.1;
 
     Eigen::VectorXd x = Eigen::VectorXd::Zero(planer_2d::state::DIMS);
-    model.update(x);
+    model.update(x, dt);
     Eigen::VectorXd z_pred = model.h();
 
     Eigen::VectorXd z_target = Eigen::VectorXd::Zero(meas::imu::DIMS);
@@ -37,14 +39,16 @@ TEST(Planer2DImuMeasurementModel, JacobianMatchesNumericalApproximation) {
     measurement_models::Planer2DImu model(true, false);
     Eigen::VectorXd x(planer_2d::state::DIMS);
     x << 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 0.1, 0.2;
+    double dt = 0.1;
 
-    jacobianMatchesNumericalApproximation(&model, x);
+    jacobianMatchesNumericalApproximation(&model, x, dt);
 }
 
 TEST(Planer2DImuMeasurementModel, JacobianMatchesNumericalApproximationWithGravity) {
     measurement_models::Planer2DImu model(true, true);
     Eigen::VectorXd x(planer_2d::state::DIMS);
     x << 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 0.1, 0.2;
+    double dt = 0.1;
 
-    jacobianMatchesNumericalApproximation(&model, x);
+    jacobianMatchesNumericalApproximation(&model, x, dt);
 }

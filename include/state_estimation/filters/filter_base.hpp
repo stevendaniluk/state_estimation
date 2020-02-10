@@ -376,7 +376,7 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
 
         if (!(input.model->checkStationary() &&
               input.model->isStationary(filter_state_.x, input.data))) {
-            myCorrect(input.data, input.model);
+            myCorrect(input.data, input.model, dt);
         } else {
             input.model->processStationaryInput(filter_state_.x, input.data);
             input.model->makeStationary(&filter_state_.x, &filter_state_.covariance);

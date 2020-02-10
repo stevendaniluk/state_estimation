@@ -8,9 +8,9 @@ MeasurementModel::MeasurementModel(uint32_t n, uint32_t k)
     cov_ = Eigen::MatrixXd::Zero(k, k);
 }
 
-void MeasurementModel::update(const Eigen::VectorXd& x) {
+void MeasurementModel::update(const Eigen::VectorXd& x, double dt) {
     assert(x.size() == state_dims_);
-    myUpdate(x);
+    myUpdate(x, dt);
 };
 
 uint32_t MeasurementModel::measurementSize() const {

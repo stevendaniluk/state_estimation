@@ -26,8 +26,8 @@ class KalmanFilter : public FilterBase<system_models::LinearSystemModel,
     // myPredict
     //
     // Provides the implementation of the correction step for a Kalman filter.
-    void myCorrect(const Eigen::VectorXd& z,
-                   measurement_models::LinearMeasurementModel* model) override;
+    void myCorrect(const Eigen::VectorXd& z, measurement_models::LinearMeasurementModel* model,
+                   double dt) override;
 
   private:
     // KFPredictionUpdate

@@ -44,8 +44,8 @@ class UKF : public FilterBase<system_models::NonlinearSystemModel,
     // myPredict
     //
     // Provides the implementation of the correction step for an UKF.
-    void myCorrect(const Eigen::VectorXd& z,
-                   measurement_models::NonlinearMeasurementModel* model) override;
+    void myCorrect(const Eigen::VectorXd& z, measurement_models::NonlinearMeasurementModel* model,
+                   double dt) override;
 
     // How many sigma points we have (2n * 1)
     uint32_t num_sigma_pts_;

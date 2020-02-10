@@ -36,7 +36,7 @@ class TestFilterMeasurementModel : public MeasurementModel {
     Eigen::VectorXd prediction() { return z_pred_; }
 
   protected:
-    void myUpdate(const Eigen::VectorXd& x) override { z_pred_ = 0.9 * x; }
+    void myUpdate(const Eigen::VectorXd& x, double dt) override { z_pred_ = 0.9 * x; }
 
     Eigen::VectorXd z_pred_;
 };
@@ -63,8 +63,9 @@ class TestFilter : public FilterBase<TestFilterSystemModel, TestFilterMeasuremen
         filter_state_.x = system_model_->prediction();
     }
 
-    void myCorrect(const Eigen::VectorXd& measurement, TestFilterMeasurementModel* model) override {
-        model->update(getState());
+    void myCorrect(const Eigen::VectorXd& measurement, TestFilterMeasurementModel* model,
+                   double dt) override {
+        model->update(getState(), dt);
         filter_state_.x = model->prediction();
     }
 };
@@ -118,7 +119,7 @@ TEST_F(FilterBaseTest, CorrectAdvancesStateBeforeCorrecting) {
     Eigen::VectorXd x_pred = ref_system_model.prediction();
 
     TestFilterMeasurementModel ref_meas_model;
-    ref_meas_model.update(x_pred);
+    ref_meas_model.update(x_pred, dt);
     Eigen::VectorXd x_target = ref_meas_model.prediction();
 
     filter->correct(z, cov_i, t_i + dt, &meas_model);
@@ -139,7 +140,7 @@ TEST_F(FilterBaseTest, MeasurementQueueAdvancesStateBeforeCorrecting) {
     Eigen::VectorXd x_pred = ref_system_model.prediction();
 
     TestFilterMeasurementModel ref_meas_model;
-    ref_meas_model.update(x_pred);
+    ref_meas_model.update(x_pred, dt);
     Eigen::VectorXd x_target = ref_meas_model.prediction();
 
     filter->enqueuMeasurement(z, cov_i, t_i + dt, &meas_model);

@@ -51,15 +51,16 @@ void jacobianMatchesNumericalApproximation(system_models::NonlinearSystemModel* 
 //
 // @param model: Model to evaluate
 // @param x: State to evaluate the Jacobian about
+// @param dt: Time delta to use
 // @param epsilon: Amount to perturb the state variables by
 // @param tolerance: Tolerance on the Frobenius norm between the numerically determine Jacobian and
 //                   the output of the system model
 void jacobianMatchesNumericalApproximation(measurement_models::NonlinearMeasurementModel* model,
-                                           const Eigen::VectorXd& x, double epsilon = 1e-6,
-                                           double tolerance = 1e-3) {
+                                           const Eigen::VectorXd& x, double dt,
+                                           double epsilon = 1e-6, double tolerance = 1e-3) {
     // Run our reference state through a model, then numerically compute the Jacobian by going
     // through each state variable perturbing it slightly.
-    model->update(x);
+    model->update(x, dt);
     Eigen::VectorXd z_pred = model->h();
     Eigen::MatrixXd H_target = model->H();
 
@@ -70,7 +71,7 @@ void jacobianMatchesNumericalApproximation(measurement_models::NonlinearMeasurem
         x_pert(i) += epsilon;
 
         // Run the new state through the model
-        model->update(x_pert);
+        model->update(x_pert, dt);
 
         // Compute the partial derivative
         H_num.col(i) = (model->h() - z_pred) / epsilon;

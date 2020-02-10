@@ -243,7 +243,7 @@ class FilterBase {
     virtual void myPredict(const Eigen::VectorXd& u, double dt) = 0;
 
     // Internal implementation of correct() for derived classes to populate
-    virtual void myCorrect(const Eigen::VectorXd& z, MeasT* model) = 0;
+    virtual void myCorrect(const Eigen::VectorXd& z, MeasT* model, double dt) = 0;
 
     // Parameters for this object
     Parameters params_;

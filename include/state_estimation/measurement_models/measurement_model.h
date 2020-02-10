@@ -27,7 +27,8 @@ class MeasurementModel : public FilterModel {
     // Updates the measurement model about the current state.
     //
     // @param x: Current system state
-    virtual void update(const Eigen::VectorXd& x);
+    // @param dt: Time difference between the state and the current measurement
+    virtual void update(const Eigen::VectorXd& x, double dt);
 
     // measurementSize
     //
@@ -36,7 +37,7 @@ class MeasurementModel : public FilterModel {
 
   protected:
     // Internal implementation of update() to be defined by derived classes.
-    virtual void myUpdate(const Eigen::VectorXd& x) = 0;
+    virtual void myUpdate(const Eigen::VectorXd& x, double dt) = 0;
 
     // Measurement covariance
     Eigen::MatrixXd Q_;

@@ -16,7 +16,7 @@ Planer2DNhOdometry::Planer2DNhOdometry(bool compute_jacobian)
     H_(meas::nh_odom::VPSI, state::VPSI) = 1;
 }
 
-void Planer2DNhOdometry::myUpdate(const Eigen::VectorXd& x) {
+void Planer2DNhOdometry::myUpdate(const Eigen::VectorXd& x, double dt) {
     z_pred_(meas::nh_odom::VX) = x(state::VX);
     z_pred_(meas::nh_odom::VPSI) = x(state::VPSI);
 }

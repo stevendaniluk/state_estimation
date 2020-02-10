@@ -27,8 +27,8 @@ class EKF : public FilterBase<system_models::NonlinearSystemModel,
     // myPredict
     //
     // Provides the implementation of the correction step for an EKF.
-    void myCorrect(const Eigen::VectorXd& z,
-                   measurement_models::NonlinearMeasurementModel* model) override;
+    void myCorrect(const Eigen::VectorXd& z, measurement_models::NonlinearMeasurementModel* model,
+                   double dt) override;
 
   private:
     // EKFPredictionUpdate
