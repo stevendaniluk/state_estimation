@@ -66,7 +66,6 @@ if(BUILD_TESTING MATCHES ON)
     test_angle_utilities
     test_transformation_utilities
     test_imu_utilities
-    test_planer_2d_state_propegation
     test_planer_2d_imu_measurement_model
     test_filter_base
     test_kalman_filter
