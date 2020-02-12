@@ -5,7 +5,26 @@ namespace state_estimation {
 // Defines the vector indices used for measurements that are common to different state/motion types
 
 namespace meas {
-// Measurement vector indices for an IMU
+
+// Accelerometer
+namespace accel {
+    static const int AX = 0;
+    static const int AY = 1;
+    static const int AZ = 2;
+
+    static const int DIMS = 3;
+}
+
+// Gyroscope
+namespace gyro {
+    static const int VPHI = 0;
+    static const int VTHETA = 1;
+    static const int VPSI = 2;
+
+    static const int DIMS = 3;
+}
+
+// IMU (accelerometer + gyroscope)
 namespace imu {
     static const int AX = 0;
     static const int AY = 1;
@@ -17,7 +36,7 @@ namespace imu {
     static const int DIMS = 6;
 }
 
-// Measurement vector indices for an IMU with RPY orientation
+// IMU with orientation in roll-pitch-yaw representation
 namespace imu_rpy {
     static const int AX = 0;
     static const int AY = 1;
@@ -32,7 +51,7 @@ namespace imu_rpy {
     static const int DIMS = 9;
 }
 
-// Measurement vector indices for an IMU with quaternion orientation
+// IMU with orientation in quaternion representation
 namespace imu_quat {
     static const int AX = 0;
     static const int AY = 1;
@@ -46,14 +65,6 @@ namespace imu_quat {
     static const int Z = 9;
 
     static const int DIMS = 10;
-}
-
-// Measurement vector indices for non holonomic wheel odometry measurements
-namespace nh_odom {
-    static const int VX = 0;
-    static const int VPSI = 1;
-
-    static const int DIMS = 2;
 }
 
 }// end meas namespace
