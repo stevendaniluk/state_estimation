@@ -12,17 +12,17 @@ namespace state_estimation {
 //
 // @param model: Model to evaluate
 // @param x: State to evaluate the Jacobian about
+// @param u: Control to evaluate the Jacobian about
 // @param dt: Time step to use in the model update
 // @param epsilon: Amount to perturb the state variables by
 // @param tolerance: Tolerance on the Frobenius norm between the numerically determine Jacobian and
 //                   the output of the system model
 void jacobianMatchesNumericalApproximation(system_models::NonlinearSystemModel* model,
-                                           const Eigen::VectorXd& x, double dt,
-                                           double epsilon = 1e-6, double tolerance = 1e-3) {
+                                           const Eigen::VectorXd& x, const Eigen::VectorXd& u,
+                                           double dt, double epsilon = 1e-6,
+                                           double tolerance = 1e-3) {
     // Run our reference state through a model, then numerically compute the Jacobian by going
     // through each state variable perturbing it slightly.
-    const Eigen::VectorXd u = Eigen::VectorXd::Zero(model->controlSize());
-
     model->update(x, u, dt);
     Eigen::VectorXd x_pred = model->g();
     Eigen::MatrixXd G_target = model->G();
