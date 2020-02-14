@@ -1,31 +1,38 @@
+#include <state_estimation/definitions/common_measurements.h>
 #include <state_estimation/utilities/imu_utilities.h>
 #include <state_estimation/utilities/transformation_utilities.h>
 
 namespace state_estimation {
 
-Eigen::Matrix<double, 6, 1> predictImuMeasurement(const Eigen::Vector3d& a,
-                                                  const Eigen::Vector3d& w,
-                                                  const Eigen::Isometry3d tf, bool include_gravity,
-                                                  Eigen::Quaterniond orientation, double g) {
-    Eigen::Matrix<double, 6, 1> z;
-
+Eigen::Matrix<double, 3, 1> predictAccelMeasurement(const Eigen::Vector3d& a,
+                                                    const Eigen::Vector3d& w,
+                                                    const Eigen::Isometry3d& tf,
+                                                    bool include_gravity,
+                                                    Eigen::Quaterniond orientation, double g) {
     if (include_gravity) {
-        z.segment<3>(0) =
-            transformLinearAcceleration(a + orientation * Eigen::Vector3d(0, 0, g), w, tf);
+        return transformLinearAcceleration(a + orientation * Eigen::Vector3d(0, 0, g), w, tf);
     } else {
-        z.segment<3>(0) = transformLinearAcceleration(a, w, tf);
+        return transformLinearAcceleration(a, w, tf);
     }
-    z.segment<3>(3) = transformAngularVelocity(w, tf.linear());
-
-    return z;
 }
 
-Eigen::Matrix<double, 6, 9> imuMeasurementJacobian(const Eigen::Vector3d& w,
-                                                   const Eigen::Isometry3d& tf,
-                                                   bool include_gravity, Eigen::Vector3d rpy,
-                                                   double g) {
+Eigen::Matrix<double, 3, 1> predictGyroMeasurement(const Eigen::Vector3d& w,
+                                                   const Eigen::Matrix3d& R) {
+    return transformAngularVelocity(w, R);
+}
+
+Eigen::Matrix<double, 3, 3> gyroMeasurementJacobian(const Eigen::Matrix3d& R) {
+    // Change in measured angular rates with respect to state angular rates is the rotation matrix
+    // between the frames
+    return R;
+}
+
+Eigen::Matrix<double, 3, 9> accelMeasurementJacobian(const Eigen::Vector3d& w,
+                                                     const Eigen::Isometry3d& tf,
+                                                     bool include_gravity, Eigen::Vector3d rpy,
+                                                     double g) {
     // Many entries in the Jacobian will be zero
-    Eigen::Matrix<double, 6, 9> H = Eigen::Matrix<double, 6, 9>::Zero();
+    Eigen::Matrix<double, 3, 9> H = Eigen::Matrix<double, 3, 9>::Zero();
 
     const Eigen::Matrix3d& R = tf.linear();
     const Eigen::Vector3d& t = tf.translation();
@@ -33,10 +40,6 @@ Eigen::Matrix<double, 6, 9> imuMeasurementJacobian(const Eigen::Vector3d& w,
     // Change in measured acceleration with respect to state acceleration is the rotation matrix
     // between the frames
     H.block<3, 3>(0, 0) = R;
-
-    // Change in measured angular rates with respect to state angular rates is the rotation matrix
-    // between the frames
-    H.block<3, 3>(3, 6) = R;
 
     // The change in measured acceleration with respect to state angular rates depends on the
     // translational offset between the frames and the angular rate
