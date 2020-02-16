@@ -81,6 +81,8 @@ class FilterBase {
         bool rewind_history = false;
         // Duration to retain a history of the filter states [s]
         double history_window_sec = 1.0;
+        // When rewind_history=false measurements in the past can be made valid to consume
+        bool allow_measurements_in_past = false;
     };
 
     // Constructor with state initialized to empty vectors and matrices

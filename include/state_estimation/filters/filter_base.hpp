@@ -117,7 +117,7 @@ void FilterBase<SysT, MeasT>::correct(const Eigen::VectorXd& z, const Eigen::Mat
                                       double timestamp, MeasT* model) {
     if (!params_.rewind_history) {
         const double dt = timestamp - filter_state_.timestamp;
-        if (dt >= 0) {
+        if (params_.allow_measurements_in_past || dt >= 0) {
             const FilterInput input(z, covariance, timestamp, false, model);
             applyInput(input);
             pruneHistory();
@@ -349,6 +349,8 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
             std::cout << "System is stationary" << std::endl;
 #endif
         }
+
+        filter_state_.timestamp += (dt > 0) ? dt : 0;
     } else {
         if (dt > 0) {
             // Need to first project the state forward to the measurement time
@@ -374,6 +376,8 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
                 std::cout << "System is stationary" << std::endl;
 #endif
             }
+
+            filter_state_.timestamp += (dt > 0) ? dt : 0;
         }
 
         // We set the measurement model covariance here because it may be time varying
@@ -408,7 +412,6 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
 #endif
 
     filter_state_.prev_input = input;
-    filter_state_.timestamp = input.timestamp;
 }
 
 template <typename SysT, typename MeasT>
