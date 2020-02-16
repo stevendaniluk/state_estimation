@@ -354,19 +354,19 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
     } else {
         if (dt > 0) {
             // Need to first project the state forward to the measurement time
+            Eigen::VectorXd u;
+            if (prev_control_.size() > 0) {
+                u = prev_control_;
+            } else {
+                u = Eigen::VectorXd::Zero(system_model_->controlSize());
+            }
+
             if (!(system_model_->checkStationary() &&
-                  system_model_->isStationary(filter_state_.x, Eigen::VectorXd()))) {
+                  system_model_->isStationary(filter_state_.x, u))) {
 #ifdef DEBUG_STATE_ESTIMATION
                 std::cout << "Advancing state x=" << printMatrix(filter_state_.x) << " by " << dt
                           << "s before applying correction" << std::endl;
 #endif
-
-                Eigen::VectorXd u;
-                if (prev_control_.size() > 0) {
-                    u = prev_control_;
-                } else {
-                    u = Eigen::VectorXd::Zero(system_model_->controlSize());
-                }
 
                 myPredict(u, dt);
             } else {
