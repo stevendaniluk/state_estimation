@@ -318,90 +318,10 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
 
     const double dt = input.timestamp - filter_state_.timestamp;
     if (input.is_control) {
-        if (!(system_model_->checkStationary() &&
-              system_model_->isStationary(filter_state_.x, input.data))) {
-            // Need to determine what control input to use
-            Eigen::VectorXd u;
-            if (input.data.size() > 0) {
-                u = input.data;
-                prev_control_ = u;
-            } else if (prev_control_.size() > 0) {
-                u = prev_control_;
-            } else {
-                u = Eigen::VectorXd::Zero(system_model_->controlSize());
-            }
-
-#ifdef DEBUG_STATE_ESTIMATION
-            std::cout << "Applying prediction:" << std::endl
-                      << "t=" << std::to_string(input.timestamp) << "s (dt=" << std::to_string(dt)
-                      << ")" << std::endl
-                      << "u=" << printMatrix(u) << std::endl
-                      << "x=" << printMatrix(filter_state_.x) << std::endl
-                      << "covariance=" << std::endl
-                      << printMatrix(filter_state_.covariance) << std::endl;
-#endif
-
-            myPredict(u, dt);
-        } else {
-            system_model_->processStationaryInput(filter_state_.x, input.data);
-            system_model_->makeStationary(&filter_state_.x, &filter_state_.covariance);
-#ifdef DEBUG_STATE_ESTIMATION
-            std::cout << "System is stationary" << std::endl;
-#endif
-        }
-
-        filter_state_.timestamp += (dt > 0) ? dt : 0;
+        applyControlInput(input);
+        filter_state_.timestamp += dt;
     } else {
-        if (dt > 0) {
-            // Need to first project the state forward to the measurement time
-            Eigen::VectorXd u;
-            if (prev_control_.size() > 0) {
-                u = prev_control_;
-            } else {
-                u = Eigen::VectorXd::Zero(system_model_->controlSize());
-            }
-
-            if (!(system_model_->checkStationary() &&
-                  system_model_->isStationary(filter_state_.x, u))) {
-#ifdef DEBUG_STATE_ESTIMATION
-                std::cout << "Advancing state x=" << printMatrix(filter_state_.x) << " by " << dt
-                          << "s before applying correction" << std::endl;
-#endif
-
-                myPredict(u, dt);
-            } else {
-                system_model_->processStationaryInput(filter_state_.x, Eigen::VectorXd());
-                system_model_->makeStationary(&filter_state_.x, &filter_state_.covariance);
-#ifdef DEBUG_STATE_ESTIMATION
-                std::cout << "System is stationary" << std::endl;
-#endif
-            }
-
-            filter_state_.timestamp += (dt > 0) ? dt : 0;
-        }
-
-        // We set the measurement model covariance here because it may be time varying
-        input.model->setCovariance(input.covariance);
-
-        if (!(input.model->checkStationary() &&
-              input.model->isStationary(filter_state_.x, input.data))) {
-#ifdef DEBUG_STATE_ESTIMATION
-            std::cout << "Applying measurement:" << std::endl
-                      << "t=" << std::to_string(input.timestamp) << "s (dt=" << std::to_string(dt)
-                      << ")" << std::endl
-                      << "z=" << printMatrix(input.data) << std::endl
-                      << "x=" << printMatrix(filter_state_.x) << std::endl
-                      << "covariance=" << std::endl
-                      << printMatrix(filter_state_.covariance) << std::endl;
-#endif
-            myCorrect(input.data, input.model, dt);
-        } else {
-            input.model->processStationaryInput(filter_state_.x, input.data);
-            input.model->makeStationary(&filter_state_.x, &filter_state_.covariance);
-#ifdef DEBUG_STATE_ESTIMATION
-            std::cout << "System is stationary" << std::endl;
-#endif
-        }
+        applyMeasurementInput(input);
     }
 
 #ifdef DEBUG_STATE_ESTIMATION
@@ -412,6 +332,81 @@ void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
 #endif
 
     filter_state_.prev_input = input;
+}
+
+template <typename SysT, typename MeasT>
+void FilterBase<SysT, MeasT>::applyControlInput(const FilterInput& input) {
+    const double dt = input.timestamp - filter_state_.timestamp;
+
+    // Need to determine what control input to use
+    Eigen::VectorXd u;
+    if (input.data.size() > 0) {
+        u = input.data;
+        prev_control_ = u;
+    } else if (prev_control_.size() > 0) {
+        u = prev_control_;
+    } else {
+        u = Eigen::VectorXd::Zero(system_model_->controlSize());
+    }
+
+    if (!(system_model_->checkStationary() &&
+          system_model_->isStationary(filter_state_.x, input.data))) {
+#ifdef DEBUG_STATE_ESTIMATION
+        std::cout << "Applying prediction:" << std::endl
+                  << "t=" << std::to_string(input.timestamp) << "s (dt=" << std::to_string(dt)
+                  << ")" << std::endl
+                  << "u=" << printMatrix(u) << std::endl
+                  << "x=" << printMatrix(filter_state_.x) << std::endl
+                  << "covariance=" << std::endl
+                  << printMatrix(filter_state_.covariance) << std::endl;
+#endif
+
+        myPredict(u, dt);
+    } else {
+        system_model_->processStationaryInput(filter_state_.x, input.data);
+        system_model_->makeStationary(&filter_state_.x, &filter_state_.covariance);
+#ifdef DEBUG_STATE_ESTIMATION
+        std::cout << "System is stationary" << std::endl;
+#endif
+    }
+}
+
+template <typename SysT, typename MeasT>
+void FilterBase<SysT, MeasT>::applyMeasurementInput(const FilterInput& input) {
+    const double dt = input.timestamp - filter_state_.timestamp;
+    if (dt > 0) {
+#ifdef DEBUG_STATE_ESTIMATION
+        std::cout << "Advancing state x=" << printMatrix(filter_state_.x) << " by " << dt
+                  << "s before applying correction" << std::endl;
+#endif
+        FilterInput advance_input(prev_control_, Eigen::MatrixXd(), input.timestamp, true);
+        applyControlInput(advance_input);
+
+        filter_state_.timestamp += dt;
+    }
+
+    // We set the measurement model covariance here because it may be time varying
+    input.model->setCovariance(input.covariance);
+
+    if (!(input.model->checkStationary() &&
+          input.model->isStationary(filter_state_.x, input.data))) {
+#ifdef DEBUG_STATE_ESTIMATION
+        std::cout << "Applying measurement:" << std::endl
+                  << "t=" << std::to_string(input.timestamp) << "s (dt=" << std::to_string(dt)
+                  << ")" << std::endl
+                  << "z=" << printMatrix(input.data) << std::endl
+                  << "x=" << printMatrix(filter_state_.x) << std::endl
+                  << "covariance=" << std::endl
+                  << printMatrix(filter_state_.covariance) << std::endl;
+#endif
+        myCorrect(input.data, input.model, dt);
+    } else {
+        input.model->processStationaryInput(filter_state_.x, input.data);
+        input.model->makeStationary(&filter_state_.x, &filter_state_.covariance);
+#ifdef DEBUG_STATE_ESTIMATION
+        std::cout << "System is stationary" << std::endl;
+#endif
+    }
 }
 
 template <typename SysT, typename MeasT>

@@ -264,6 +264,20 @@ class FilterBase {
     // @param input: Filter input to apply
     void applyInput(const FilterInput& input);
 
+    // applyControlInput
+    //
+    // Applies a single control input to the filter.
+    //
+    // @param input: Control input to apply
+    void applyControlInput(const FilterInput& input);
+
+    // applyMeasurementInput
+    //
+    // Applies a single measurement input to the filter.
+    //
+    // @param input: Measurement input to apply
+    void applyMeasurementInput(const FilterInput& input);
+
     // applyBatchInputs
     //
     // Applies a batch of inputs to the filters, which can be controls or measurements. This
