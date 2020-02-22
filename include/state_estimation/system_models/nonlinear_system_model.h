@@ -23,9 +23,12 @@ class NonlinearSystemModel : public SystemModel {
     // Constructor
     //
     // @param n: State dimensions
-    // @param m: Control dimentions
-    // @param compute_jacobian: When true the Jacobian, G,  will be computed during the update step
-    NonlinearSystemModel(uint32_t n, uint32_t m, bool compute_jacobian = false);
+    // @param m: Control dimensions
+    // @param compute_jacobian: When true the Jacobian, G, will be computed during the update step
+    // @param update_covariance: When true the process and control covariance Jacobians will be
+    //                           updated
+    NonlinearSystemModel(uint32_t n, uint32_t m, bool compute_jacobian = false,
+                         bool update_covariance = false);
 
     // g
     //
@@ -47,6 +50,8 @@ class NonlinearSystemModel : public SystemModel {
     Eigen::MatrixXd G_;
     // Flag for if the Jacobian should be updated
     bool compute_jacobian_;
+    // Flag for if the process and control covairance Jacobians should be updated
+    bool update_covariance_;
 };
 
 }  // namespace system_models

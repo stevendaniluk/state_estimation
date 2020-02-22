@@ -12,7 +12,8 @@ void KalmanFilter::myPredict(const Eigen::VectorXd& u, double dt) {
 
     filter_state_.covariance =
         system_model_->A() * filter_state_.covariance * system_model_->A().transpose() +
-        system_model_->covariance();
+        system_model_->P() * system_model_->Rp() * system_model_->P().transpose() +
+        system_model_->V() * system_model_->Rc() * system_model_->V().transpose();
 
 #ifdef DEBUG_STATE_ESTIMATION
     std::cout << "KF predicition update:" << std::endl
@@ -20,8 +21,10 @@ void KalmanFilter::myPredict(const Eigen::VectorXd& u, double dt) {
               << printMatrix(system_model_->A()) << std::endl
               << "B=" << std::endl
               << printMatrix(system_model_->B()) << std::endl
-              << "R=" << std::endl
-              << printMatrix(system_model_->covariance()) << std::endl
+              << "P=" << std::endl
+              << printMatrix(system_model_->P()) << std::endl
+              << "V=" << std::endl
+              << printMatrix(system_model_->V()) << std::endl
               << "x=" << filter_state_.x.transpose() << std::endl
               << "Covariance=" << std::endl
               << printMatrix(filter_state_.covariance) << std::endl;

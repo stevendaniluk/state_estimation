@@ -5,7 +5,7 @@ namespace state_estimation {
 namespace system_models {
 
 LinearSystemModel::LinearSystemModel(uint32_t n, uint32_t m)
-    : SystemModel::SystemModel(n, n)
+    : SystemModel::SystemModel(n, m)
     , A_(Eigen::MatrixXd::Zero(n, n))
     , B_(Eigen::MatrixXd::Zero(n, m)) {}
 

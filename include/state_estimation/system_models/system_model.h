@@ -21,7 +21,7 @@ class SystemModel : public FilterModel {
     // Constructor
     //
     // @param n: State dimensions
-    // @param m: Control dimentions
+    // @param m: Control dimensions
     SystemModel(uint32_t n, uint32_t m);
 
     // update
@@ -38,12 +38,52 @@ class SystemModel : public FilterModel {
     // @return: Number of control variables
     uint32_t controlSize() const;
 
+    // setProcessCovariance
+    //
+    // @param R_p: The process covariance matrix to use in the covariance update computation
+    //             R = P * R_p * P' + C * R_c * C'
+    void setProcessCovariance(const Eigen::MatrixXd& R_p);
+
+    // setControlCovariance
+    //
+    // @param R_c: The control covariance matrix to use in the covariance update computation
+    //             R = P * R_p * P' + C * R_c * C'
+    void setControlCovariance(const Eigen::MatrixXd& R_c);
+
+    // Rp
+    //
+    // @return: Process covariance matrix
+    Eigen::MatrixXd Rp() const;
+
+    // Rc
+    //
+    // @return: Control covariance matrix
+    Eigen::MatrixXd Rc() const;
+
+    // P
+    //
+    // @return: Process noise Jacobian
+    Eigen::MatrixXd P() const;
+
+    // V
+    //
+    // @return: Control noise Jacobian
+    Eigen::MatrixXd V() const;
+
   protected:
     // Internal implementations of update() and updateNoControl() to be defined by derived classes.
     virtual void myUpdate(const Eigen::VectorXd& x, const Eigen::VectorXd& u, double dt) = 0;
 
     // Dimension of the control vector
     uint32_t control_dims_;
+    // Process noise covariance matrix
+    Eigen::MatrixXd R_p_;
+    // Control space covariance matrix
+    Eigen::MatrixXd R_c_;
+    // Process noise Jacobian
+    Eigen::MatrixXd P_;
+    // Control noise Jacobian
+    Eigen::MatrixXd V_;
 };
 
 }  // namespace state_estimation

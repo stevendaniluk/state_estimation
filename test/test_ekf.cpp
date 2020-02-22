@@ -29,7 +29,7 @@ TEST_F(EKFTest, PredictUses_G_FunctionForCovarianceUpdate) {
     double dt = 0.4;
 
     // Run it through the filter, with zero process noise to isolate the Jacobian
-    system_model.setCovariance(Eigen::MatrixXd::Zero(2, 2));
+    system_model.setProcessCovariance(Eigen::MatrixXd::Zero(2, 2));
     filter->predict(vec_22, filter->getStateTime() + dt);
 
     // Compute the target covariance with the EKF update of Sigma = G * Sigma * G'

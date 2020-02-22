@@ -18,6 +18,10 @@ namespace system_models {
 // The update method is responsible for updating all time varying matrix elements, if necessary.
 class LinearSystemModel : public SystemModel {
   public:
+    // Constructor
+    //
+    // @param n: State dimensions
+    // @param m: Control dimensions
     LinearSystemModel(uint32_t n, uint32_t m);
 
     // A

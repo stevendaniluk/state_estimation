@@ -23,7 +23,31 @@ TEST_F(UKFTest, PredictUses_g_FunctionForStateUpdate) {
 }
 
 TEST_F(UKFTest, PredictUsesSystemModelProcessNoise) {
-    predictUsesSystemModelProcessNoise();
+    double dt = 0.4;
+
+    // Create two filters with two different system models that have different process noise
+    // levels
+    Eigen::MatrixXd sigma_1 = 1e-2 * Eigen::MatrixXd::Identity(2, 2);
+    SampleSystemModel<1> model_1(2, 2);
+    model_1.setCovariance(sigma_1);
+    UKF filter_1(&model_1, x_i, cov_i, t_i);
+    filter_1.predict(vec_22, t_i + dt);
+
+    Eigen::MatrixXd sigma_2 = 1e-4 * Eigen::MatrixXd::Identity(2, 2);
+    SampleSystemModel<1> model_2(2, 2);
+    model_2.setCovariance(sigma_2);
+    UKF filter_2(&model_2, x_i, cov_i, t_i);
+    filter_2.predict(vec_22, t_i + dt);
+
+    // The covariance between the two filters should only differ by the difference between the
+    // two process noise levels since the process noise is added on top of the system update
+    Eigen::MatrixXd cov_diff = filter_2.getCovariance() - filter_1.getCovariance();
+    Eigen::MatrixXd target_diff = sigma_2 - sigma_1;
+
+    EXPECT_TRUE(cov_diff.isApprox(target_diff, 1e-6)) << "Target:" << std::endl
+                                                      << target_diff << std::endl
+                                                      << "Actual:" << std::endl
+                                                      << cov_diff;
 }
 
 TEST_F(UKFTest, VeryLargeMeasurementCovarianceMakesMeasurementIgnored) {

@@ -10,15 +10,18 @@ void EKF::myPredict(const Eigen::VectorXd& u, double dt) {
     filter_state_.x = system_model_->g();
     filter_state_.covariance =
         system_model_->G() * filter_state_.covariance * system_model_->G().transpose() +
-        system_model_->covariance();
+        system_model_->P() * system_model_->Rp() * system_model_->P().transpose() +
+        system_model_->V() * system_model_->Rc() * system_model_->V().transpose();
 
 #ifdef DEBUG_STATE_ESTIMATION
     std::cout << "EKF predicition update:" << std::endl
               << "g=" << printMatrix(system_model_->g()) << std::endl
               << "G=" << std::endl
               << printMatrix(system_model_->G()) << std::endl
-              << "R=" << std::endl
-              << printMatrix(system_model_->covariance()) << std::endl
+              << "P=" << std::endl
+              << printMatrix(system_model_->P()) << std::endl
+              << "V=" << std::endl
+              << printMatrix(system_model_->V()) << std::endl
               << "x=" << printMatrix(filter_state_.x) << std::endl
               << "Covariance=" << std::endl
               << printMatrix(filter_state_.covariance) << std::endl;

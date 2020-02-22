@@ -16,6 +16,8 @@ class SampleSystemModel : public state_estimation::system_models::NonlinearSyste
         : NonlinearSystemModel::NonlinearSystemModel(n, m) {
         setCovariance(1e-3 * Eigen::MatrixXd::Identity(n, n));
         G_ = Eigen::MatrixXd::Identity(n, n);
+        R_p_ = 1e-3 * Eigen::MatrixXd::Identity(n, n);
+        P_ = Eigen::MatrixXd::Identity(n, n);
     }
 
   protected:
@@ -90,13 +92,13 @@ class FilterTest : public ::testing::Test {
         // levels
         Eigen::MatrixXd sigma_1 = 1e-2 * Eigen::MatrixXd::Identity(2, 2);
         SysT model_1(2, 2);
-        model_1.setCovariance(sigma_1);
+        model_1.setProcessCovariance(sigma_1);
         FilterT filter_1(&model_1, x_i, cov_i, t_i);
         filter_1.predict(vec_22, t_i + dt);
 
         Eigen::MatrixXd sigma_2 = 1e-4 * Eigen::MatrixXd::Identity(2, 2);
         SysT model_2(2, 2);
-        model_2.setCovariance(sigma_2);
+        model_2.setProcessCovariance(sigma_2);
         FilterT filter_2(&model_2, x_i, cov_i, t_i);
         filter_2.predict(vec_22, t_i + dt);
 

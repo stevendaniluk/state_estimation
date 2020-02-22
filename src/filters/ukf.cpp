@@ -75,7 +75,9 @@ void UKF::myPredict(const Eigen::VectorXd& u, double dt) {
     filter_state_.x = system_model_->weightedSum(w_mean_, sigma_pts);
 
     // Compute the weighted covariance
-    filter_state_.covariance = system_model_->covariance();
+    filter_state_.covariance =
+        system_model_->P() * system_model_->Rp() * system_model_->P().transpose() +
+        system_model_->V() * system_model_->Rc() * system_model_->V().transpose();
     for (uint32_t i = 0; i < num_sigma_pts_; ++i) {
         const Eigen::VectorXd dx =
             system_model_->subtractVectors(sigma_pts.col(i), filter_state_.x);
