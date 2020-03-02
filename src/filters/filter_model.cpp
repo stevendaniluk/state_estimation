@@ -1,22 +1,16 @@
 #include <assert.h>
 #include <state_estimation/filters/filter_model.h>
+#include <algorithm>
 
 namespace state_estimation {
 
-FilterModel::FilterModel(uint32_t n)
+FilterModel::FilterModel(uint16_t n)
     : state_dims_(n)
-    , cov_(Eigen::MatrixXd::Zero(n, n))
+    , state_usage_(n, 0)
     , check_stationary_(false)
     , tf_(Eigen::Isometry3d::Identity())
-    , tf_set_(false) {}
-
-Eigen::MatrixXd FilterModel::covariance() const {
-    return cov_;
-}
-
-void FilterModel::setCovariance(const Eigen::MatrixXd& new_cov) {
-    assert(new_cov.rows() == cov_.rows() && new_cov.cols() == cov_.cols());
-    cov_ = new_cov;
+    , tf_set_(false) {
+    setActiveStates({});
 }
 
 void FilterModel::setTf(const Eigen::Isometry3d& tf) {
@@ -28,8 +22,43 @@ void FilterModel::setTf(const Eigen::Isometry3d& tf) {
     }
 }
 
-uint32_t FilterModel::stateSize() const {
+uint16_t FilterModel::stateSize() const {
     return state_dims_;
+}
+
+uint16_t FilterModel::activeStateSize() const {
+    return active_states_.empty() ? state_dims_ : active_states_.size();
+}
+
+std::vector<uint16_t> FilterModel::activeStates() const {
+    return active_states_;
+}
+
+std::vector<uint8_t> FilterModel::stateUsage() const {
+    return state_usage_;
+}
+
+void FilterModel::setActiveStates(const std::vector<uint16_t>& active_states) {
+    // Only grab the valid indices
+    active_states_.clear();
+    for (auto index : active_states) {
+        if (index < state_dims_) {
+            active_states_.push_back(index);
+        }
+    }
+
+    if (!active_states_.empty()) {
+        std::fill(state_usage_.begin(), state_usage_.end(), 0);
+        for (auto index : active_states_) {
+            state_usage_[index] = 1;
+        }
+    } else {
+        // All states are used
+        std::fill(state_usage_.begin(), state_usage_.end(), 1);
+    }
+
+    // Converting to/from subsets assumes an ordered list of indices
+    std::sort(active_states_.begin(), active_states_.end());
 }
 
 void FilterModel::setCheckStationary(bool check) {

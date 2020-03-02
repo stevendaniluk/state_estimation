@@ -3,12 +3,11 @@
 namespace state_estimation {
 namespace measurement_models {
 
-NonlinearMeasurementModel::NonlinearMeasurementModel(uint32_t n, uint32_t k,
-                                                     bool compute_covariance, bool compute_jacobian)
-    : MeasurementModel::MeasurementModel(n, k, compute_covariance)
+NonlinearMeasurementModel::NonlinearMeasurementModel(uint16_t n, uint16_t k, bool compute_jacobian)
+    : MeasurementModel::MeasurementModel(n, k)
     , compute_jacobian_(compute_jacobian)
-    , z_pred_(Eigen::VectorXd::Zero(k))
-    , H_(Eigen::MatrixXd::Zero(k, n)) {}
+    , z_pred_(Eigen::VectorXd::Zero(meas_dims_))
+    , H_(Eigen::MatrixXd::Zero(meas_dims_, state_dims_)) {}
 
 Eigen::VectorXd NonlinearMeasurementModel::h() const {
     return z_pred_;

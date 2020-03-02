@@ -24,11 +24,12 @@ class NonlinearSystemModel : public SystemModel {
     //
     // @param n: State dimensions
     // @param m: Control dimensions
+    // @param p: Process noise dimensions
     // @param compute_jacobian: When true the Jacobian, G, will be computed during the update step
     // @param update_covariance: When true the process and control covariance Jacobians will be
     //                           updated
-    NonlinearSystemModel(uint32_t n, uint32_t m, bool compute_jacobian = false,
-                         bool update_covariance = false);
+    NonlinearSystemModel(uint16_t n, uint16_t m, uint16_t p, bool compute_jacobian = true,
+                         bool update_covariance = true);
 
     // g
     //

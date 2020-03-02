@@ -22,7 +22,8 @@ class LinearSystemModel : public SystemModel {
     //
     // @param n: State dimensions
     // @param m: Control dimensions
-    LinearSystemModel(uint32_t n, uint32_t m);
+    // @param p: Process noise dimensions
+    LinearSystemModel(uint16_t n, uint16_t m, uint16_t p);
 
     // A
     //

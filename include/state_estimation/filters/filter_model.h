@@ -2,6 +2,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+#include <vector>
 
 namespace state_estimation {
 
@@ -16,17 +17,7 @@ class FilterModel {
     // Constructor
     //
     // @param n: State dimensions
-    FilterModel(uint32_t n);
-
-    // covariance
-    //
-    // @return: Covariance for prediction/correction
-    Eigen::MatrixXd covariance() const;
-
-    // setCovariance
-    //
-    // @param new_cov: New covariance matrix to use
-    void setCovariance(const Eigen::MatrixXd& new_cov);
+    FilterModel(uint16_t n);
 
     // setTf
     //
@@ -35,8 +26,28 @@ class FilterModel {
 
     // stateSize
     //
-    // @return: Number of state variables
-    uint32_t stateSize() const;
+    // @return: Dimenions of the full state vector
+    uint16_t stateSize() const;
+
+    // activeStateSize
+    //
+    // @return: Dimensions of the state vector being updated
+    uint16_t activeStateSize() const;
+
+    // activeStates
+    //
+    // @return: Ordered list of state indices being updated
+    std::vector<uint16_t> activeStates() const;
+
+    // stateUsage
+    //
+    // @return: A bit field of which state variables are used (0=not used)
+    std::vector<uint8_t> stateUsage() const;
+
+    // setActiveStates
+    //
+    // @param active_states: Which state variables to update (empty updates all variables)
+    void setActiveStates(const std::vector<uint16_t>& active_states);
 
     // setCheckStationary
     //
@@ -122,9 +133,13 @@ class FilterModel {
     virtual void postTfUpdate() {}
 
     // Dimension of the state vector
-    uint32_t state_dims_;
-    // Covariance matrix
-    Eigen::MatrixXd cov_;
+    uint16_t state_dims_;
+    // Dimensions of the state vector being used
+    uint16_t active_state_dims_;
+    // Which state variables are being updated (ordered)
+    std::vector<uint16_t> active_states_;
+    // A bit field of which states are used (0=not used)
+    std::vector<uint8_t> state_usage_;
     // If checks should be performed for determining if the system is stationary
     bool check_stationary_;
     // Transformation for control/measurement inputs

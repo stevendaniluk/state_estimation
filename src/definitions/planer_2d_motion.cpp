@@ -4,21 +4,24 @@
 namespace state_estimation {
 namespace planer_2d {
 
-Eigen::VectorXd addState(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs) {
+Eigen::VectorXd addState(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs, const std::vector<uint8_t>& usage) {
+    // TODO: Account for usage
     Eigen::VectorXd result = lhs + rhs;
     result(state::PSI) = constrainAngle(result(state::PSI));
 
     return result;
 }
 
-Eigen::VectorXd subtractState(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs) {
+Eigen::VectorXd subtractState(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs, const std::vector<uint8_t>& usage) {
+    // TODO: Account for usage
     Eigen::VectorXd result = lhs - rhs;
     result(state::PSI) = angleDifference(lhs(state::PSI), rhs(state::PSI));
 
     return result;
 }
 
-Eigen::VectorXd weightedSumOfStates(const Eigen::VectorXd& w, const Eigen::MatrixXd& X) {
+Eigen::VectorXd weightedSumOfStates(const Eigen::VectorXd& w, const Eigen::MatrixXd& X, const std::vector<uint8_t>& usage) {
+    // TODO: Account for usage
     assert(w.size() == X.cols());
 
     Eigen::VectorXd X_sum = Eigen::VectorXd::Zero(X.rows());

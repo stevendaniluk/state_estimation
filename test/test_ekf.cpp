@@ -17,7 +17,7 @@ TEST_F(EKFTest, PredictUses_g_FunctionForStateUpdate) {
     filter->predict(vec_22, filter->getStateTime() + dt);
 
     // Run it through the model
-    SampleSystemModel<1> eval_model(2, 2);
+    SampleSystemModel<1> eval_model(2, 2, 2);
     eval_model.update(x_i, vec_22, dt);
     Eigen::VectorXd x_target = eval_model.g();
 
@@ -33,7 +33,7 @@ TEST_F(EKFTest, PredictUses_G_FunctionForCovarianceUpdate) {
     filter->predict(vec_22, filter->getStateTime() + dt);
 
     // Compute the target covariance with the EKF update of Sigma = G * Sigma * G'
-    SampleSystemModel<1> eval_model(2, 2);
+    SampleSystemModel<1> eval_model(2, 2, 2);
     eval_model.update(x_i, vec_22, dt);
     Eigen::MatrixXd cov_target = eval_model.G() * cov_i * eval_model.G().transpose();
 
@@ -65,4 +65,20 @@ TEST_F(EKFTest, CorrectWithEqualCovarianceUpdatesToMeanOfStateAndMeasurement) {
 
 TEST_F(EKFTest, CorrectWithEqualCovarianceHalvesTheCovarience) {
     correctWithEqualCovarianceHalvesTheCovarience();
+}
+
+TEST_F(EKFTest, PredictOnlyUpdatesActiveStates) {
+    predictOnlyUpdatesActiveStates();
+}
+
+TEST_F(EKFTest, PredictOnlyUsesActiveControls) {
+    predictOnlyUsesActiveControls();
+}
+
+TEST_F(EKFTest, CorrectOnlyUpdatesActiveStates) {
+    correctOnlyUpdatesActiveStates();
+}
+
+TEST_F(EKFTest, CorrectOnlyUsesActiveMeasurements) {
+    correctOnlyUsesActiveMeasurements();
 }

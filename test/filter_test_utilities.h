@@ -12,17 +12,27 @@
 template <uint32_t N = 1>
 class SampleSystemModel : public state_estimation::system_models::NonlinearSystemModel {
   public:
-    SampleSystemModel(uint32_t n, uint32_t m)
-        : NonlinearSystemModel::NonlinearSystemModel(n, m) {
-        setCovariance(1e-3 * Eigen::MatrixXd::Identity(n, n));
-        G_ = Eigen::MatrixXd::Identity(n, n);
-        R_p_ = 1e-3 * Eigen::MatrixXd::Identity(n, n);
-        P_ = Eigen::MatrixXd::Identity(n, n);
+    SampleSystemModel(uint16_t n, uint16_t m, uint16_t p, bool compute_jacobian = false,
+                      bool update_covariance = false)
+        : NonlinearSystemModel::NonlinearSystemModel(n, m, p, compute_jacobian, update_covariance) {
+        G_ = Eigen::MatrixXd::Identity(state_dims_, state_dims_);
+        R_p_ = 1e-3 * Eigen::MatrixXd::Identity(state_dims_, state_dims_);
+        P_ = Eigen::MatrixXd::Identity(state_dims_, state_dims_);
     }
 
   protected:
     void myUpdate(const Eigen::VectorXd& x, const Eigen::VectorXd& u, double dt) override {
-        x_pred_ = x.array().pow(N).matrix() + dt * Eigen::Vector2d::Ones(stateSize()) + dt * u;
+        // Only update the active states with the active controls
+        x_pred_ = x;
+        for (uint16_t index = 0; index < stateSize(); ++index) {
+            if (stateUsage()[index]) {
+                x_pred_(index) = pow(x(index), N) + dt;
+
+                if (controlUsage()[index]) {
+                    x_pred_(index) += dt * u(index);
+                }
+            }
+        }
     }
 };
 
@@ -35,9 +45,9 @@ template <uint32_t N = 1>
 class SampleMeasurementModel
     : public state_estimation::measurement_models::NonlinearMeasurementModel {
   public:
-    SampleMeasurementModel(uint32_t n, uint32_t k)
-        : NonlinearMeasurementModel::NonlinearMeasurementModel(n, k, false, false) {
-        H_ = Eigen::MatrixXd::Identity(k, n);
+    SampleMeasurementModel(uint16_t n, uint16_t k, bool compute_jacobian = false)
+        : NonlinearMeasurementModel::NonlinearMeasurementModel(n, k, compute_jacobian) {
+        H_ = Eigen::MatrixXd::Identity(meas_dims_, state_dims_);
     }
 
   protected:
@@ -67,7 +77,7 @@ class FilterTest : public ::testing::Test {
     void SetUp() override { filter.reset(new FilterT(&system_model, x_i, cov_i, t_i)); }
 
     std::unique_ptr<FilterT> filter;
-    SysT system_model = SysT(2, 2);
+    SysT system_model = SysT(2, 2, 2);
     MeasT meas_model = MeasT(2, 2);
 
     // Assortment of input vectors
@@ -91,13 +101,13 @@ class FilterTest : public ::testing::Test {
         // Create two filters with two different system models that have different process noise
         // levels
         Eigen::MatrixXd sigma_1 = 1e-2 * Eigen::MatrixXd::Identity(2, 2);
-        SysT model_1(2, 2);
+        SysT model_1(2, 2, 2);
         model_1.setProcessCovariance(sigma_1);
         FilterT filter_1(&model_1, x_i, cov_i, t_i);
         filter_1.predict(vec_22, t_i + dt);
 
         Eigen::MatrixXd sigma_2 = 1e-4 * Eigen::MatrixXd::Identity(2, 2);
-        SysT model_2(2, 2);
+        SysT model_2(2, 2, 2);
         model_2.setProcessCovariance(sigma_2);
         FilterT filter_2(&model_2, x_i, cov_i, t_i);
         filter_2.predict(vec_22, t_i + dt);
@@ -158,7 +168,7 @@ class FilterTest : public ::testing::Test {
         // Note: This will only be true for the KF and EKF variants
 
         // Will need to zero the process noise to isolate the correction update
-        system_model.setCovariance(Eigen::MatrixXd::Zero(2, 2));
+        system_model.setProcessCovariance(Eigen::MatrixXd::Zero(2, 2));
 
         Eigen::VectorXd meas = vec_22;
         filter->correct(meas, cov_i, t_i, &meas_model);
@@ -172,7 +182,7 @@ class FilterTest : public ::testing::Test {
         // Note: This will only be true for the KF and EKF variants
 
         // Will need to zero the process noise to isolate the correction update
-        system_model.setCovariance(Eigen::MatrixXd::Zero(2, 2));
+        system_model.setProcessCovariance(Eigen::MatrixXd::Zero(2, 2));
 
         filter->correct(vec_11, cov_i, t_i, &meas_model);
 
@@ -181,5 +191,95 @@ class FilterTest : public ::testing::Test {
                                                                         << cov_target << std::endl
                                                                         << "Actual:" << std::endl
                                                                         << filter->getCovariance();
+    }
+
+    void predictOnlyUpdatesActiveStates() {
+        double dt = 0.4;
+        Eigen::VectorXd u = vec_22;
+
+        // Perform a prediction step with the full state for reference
+        filter->predict(u, filter->getStateTime() + dt);
+        Eigen::VectorXd x_prime_full = filter->getState();
+        Eigen::MatrixXd cov_prime_full = filter->getCovariance();
+
+        // Only update one state
+        system_model.setActiveStates({1});
+        filter.reset(new FilterT(&system_model, x_i, cov_i, t_i));
+
+        filter->predict(u, filter->getStateTime() + dt);
+
+        EXPECT_EQ(x_i(0), filter->getState()(0));
+        EXPECT_FLOAT_EQ(x_prime_full(1), filter->getState()(1));
+
+        EXPECT_EQ(cov_i(0, 0), filter->getCovariance()(0, 0));
+        EXPECT_FLOAT_EQ(cov_prime_full(1, 1), filter->getCovariance()(1, 1));
+    }
+
+    void predictOnlyUsesActiveControls() {
+        double dt = 0.4;
+        Eigen::VectorXd u = vec_22;
+
+        // Perform a prediction step with the full state for reference
+        filter->predict(0 * u, filter->getStateTime() + dt);
+        Eigen::VectorXd x_prime_no_control = filter->getState();
+
+        filter->initialize(x_i, cov_i, t_i);
+        filter->predict(u, filter->getStateTime() + dt);
+        Eigen::VectorXd x_prime_control = filter->getState();
+
+        // Only provide one control input
+        system_model.setActiveControls({1});
+        filter.reset(new FilterT(&system_model, x_i, cov_i, t_i));
+
+        filter->predict(u, filter->getStateTime() + dt);
+
+        EXPECT_EQ(x_prime_no_control(0), filter->getState()(0));
+        EXPECT_FLOAT_EQ(x_prime_control(1), filter->getState()(1));
+    }
+
+    void correctOnlyUpdatesActiveStates() {
+        Eigen::VectorXd z = vec_22;
+        Eigen::MatrixXd cov = 1e-2 * Eigen::MatrixXd::Identity(2, 2);
+
+        // Perform a correction step with the full state for reference
+        filter->correct(z, cov, filter->getStateTime(), &meas_model);
+        Eigen::VectorXd x_prime_full = filter->getState();
+        Eigen::MatrixXd cov_prime_full = filter->getCovariance();
+
+        // Only update one state
+        system_model.setActiveStates({1});
+        meas_model.setActiveStates({1});
+        meas_model.setActiveMeasurements({1});
+        filter.reset(new FilterT(&system_model, x_i, cov_i, t_i));
+
+        filter->correct(z, cov, filter->getStateTime(), &meas_model);
+
+        EXPECT_EQ(x_i(0), filter->getState()(0));
+        EXPECT_FLOAT_EQ(x_prime_full(1), filter->getState()(1));
+
+        EXPECT_EQ(cov_i(0, 0), filter->getCovariance()(0, 0));
+        EXPECT_FLOAT_EQ(cov_prime_full(1, 1), filter->getCovariance()(1, 1));
+    }
+
+    void correctOnlyUsesActiveMeasurements() {
+        Eigen::VectorXd z = vec_22;
+        Eigen::MatrixXd cov = 1e-2 * Eigen::MatrixXd::Identity(2, 2);
+
+        // Perform a correction step with the full state for reference
+        filter->correct(z, cov, filter->getStateTime(), &meas_model);
+        Eigen::VectorXd x_prime_full = filter->getState();
+        Eigen::MatrixXd cov_prime_full = filter->getCovariance();
+
+        // Only utilize one measurement variable
+        meas_model.setActiveMeasurements({1});
+        filter.reset(new FilterT(&system_model, x_i, cov_i, t_i));
+
+        filter->correct(z, cov, filter->getStateTime(), &meas_model);
+
+        EXPECT_EQ(x_i(0), filter->getState()(0));
+        EXPECT_FLOAT_EQ(x_prime_full(1), filter->getState()(1));
+
+        EXPECT_EQ(cov_i(0, 0), filter->getCovariance()(0, 0));
+        EXPECT_FLOAT_EQ(cov_prime_full(1, 1), filter->getCovariance()(1, 1));
     }
 };

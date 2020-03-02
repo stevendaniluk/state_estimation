@@ -19,9 +19,8 @@ class MeasurementModel : public FilterModel {
     // Constructor
     //
     // @param n: State dimensions
-    // @param k: Measurement dimentions
-    // @param compute_covariance: When true the covariance will be computed on each update
-    MeasurementModel(uint32_t n, uint32_t k, bool compute_covariance);
+    // @param k: Measurement dimensions
+    MeasurementModel(uint16_t n, uint16_t k);
 
     // update
     //
@@ -33,19 +32,51 @@ class MeasurementModel : public FilterModel {
 
     // measurementSize
     //
-    // @return: Number of measurement variables
-    uint32_t measurementSize() const;
+    // @return: Dimension of the measurement vector
+    uint16_t measurementSize() const;
+
+    // activeMeasurementSize
+    //
+    // @return: Dimensions of the measurement vector being used
+    uint16_t activeMeasurementSize() const;
+
+    // activeMeasurements
+    //
+    // @return: Ordered list of measurement indices being updated
+    std::vector<uint16_t> activeMeasurements() const;
+
+    // measurementUsage
+    //
+    // @return: A bit field of which measurement variables are used (0=not used)
+    std::vector<uint8_t> measurementUsage() const;
+
+    // setActiveMeasurements
+    //
+    // @param active_measurements: Which measurement variables to update (empty updates all)
+    void setActiveMeasurements(const std::vector<uint16_t>& active_measurements);
+
+    // covariance
+    //
+    // @return: Covariance for prediction/correction
+    Eigen::MatrixXd covariance() const;
+
+    // setCovariance
+    //
+    // @param new_cov: New covariance matrix to use
+    void setCovariance(const Eigen::MatrixXd& new_cov);
 
   protected:
     // Internal implementation of update() to be defined by derived classes.
     virtual void myUpdate(const Eigen::VectorXd& x, double dt) = 0;
 
-    // Measurement covariance
-    Eigen::MatrixXd Q_;
     // Dimension of the measurement vector
-    uint32_t meas_dims_;
-    // Flag for if the covariance should be updated internally by the model, or set externally
-    bool compute_covariance_;
+    uint16_t meas_dims_;
+    // Which measurement variables are being used (ordered)
+    std::vector<uint16_t> active_measurements_;
+    // A bit field of which measurement variables are used (0=not used)
+    std::vector<uint8_t> measurement_usage_;
+    // Measurement covariance
+    Eigen::MatrixXd cov_;
 };
 
 }  // namespace state_estimation

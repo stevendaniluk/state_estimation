@@ -22,7 +22,8 @@ class SystemModel : public FilterModel {
     //
     // @param n: State dimensions
     // @param m: Control dimensions
-    SystemModel(uint32_t n, uint32_t m);
+    // @param p: Process noise dimensions
+    SystemModel(uint16_t n, uint16_t m, uint16_t p);
 
     // update
     //
@@ -35,8 +36,28 @@ class SystemModel : public FilterModel {
 
     // controlSize
     //
-    // @return: Number of control variables
-    uint32_t controlSize() const;
+    // @return: Dimension of the control vector
+    uint16_t controlSize() const;
+
+    // activeControlSize
+    //
+    // @return: Dimensions of the control vector being usedupdated
+    uint16_t activeControlSize() const;
+
+    // activeControls
+    //
+    // @return: Ordered list of control indices being used
+    std::vector<uint16_t> activeControls() const;
+
+    // controlUsage
+    //
+    // @return: A bit field of which control variables are used (0=not used)
+    std::vector<uint8_t> controlUsage() const;
+
+    // setActiveControls
+    //
+    // @param active_controls: Which control variables to use (empty uses all variables)
+    void setActiveControls(const std::vector<uint16_t>& active_controls);
 
     // setProcessCovariance
     //
@@ -75,7 +96,11 @@ class SystemModel : public FilterModel {
     virtual void myUpdate(const Eigen::VectorXd& x, const Eigen::VectorXd& u, double dt) = 0;
 
     // Dimension of the control vector
-    uint32_t control_dims_;
+    uint16_t control_dims_;
+    // Which control variables are being used (ordered)
+    std::vector<uint16_t> active_controls_;
+    // A bit field of which control variables are used (0=not used)
+    std::vector<uint8_t> control_usage_;
     // Process noise covariance matrix
     Eigen::MatrixXd R_p_;
     // Control space covariance matrix

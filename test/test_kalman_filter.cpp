@@ -11,11 +11,11 @@ using namespace state_estimation;
 //   x' = Ax + dt * u
 class KFSampleSystemModel : public system_models::LinearSystemModel {
   public:
-    KFSampleSystemModel(uint32_t n, uint32_t m)
-        : LinearSystemModel::LinearSystemModel(n, m) {
-        setA(Eigen::MatrixXd::Identity(n, n));
-        R_p_ = 1e-3 * Eigen::MatrixXd::Identity(n, n);
-        P_ = Eigen::MatrixXd::Identity(n, n);
+    KFSampleSystemModel(uint16_t n, uint16_t m, uint16_t p)
+        : LinearSystemModel::LinearSystemModel(n, m, p) {
+        setA(Eigen::MatrixXd::Identity(state_dims_, state_dims_));
+        R_p_ = 1e-3 * Eigen::MatrixXd::Identity(state_dims_, state_dims_);
+        P_ = Eigen::MatrixXd::Identity(state_dims_, state_dims_);
     }
 
   protected:
@@ -29,9 +29,9 @@ class KFSampleSystemModel : public system_models::LinearSystemModel {
 // introspect the update equations.
 class KFSampleMeasurementModel : public measurement_models::LinearMeasurementModel {
   public:
-    KFSampleMeasurementModel(uint32_t n, uint32_t k)
-        : LinearMeasurementModel::LinearMeasurementModel(n, k, false) {
-        setC(Eigen::MatrixXd::Identity(k, n));
+    KFSampleMeasurementModel(uint16_t n, uint16_t k)
+        : LinearMeasurementModel::LinearMeasurementModel(n, k) {
+        setC(Eigen::MatrixXd::Identity(meas_dims_, state_dims_));
     }
 
   protected:
@@ -48,8 +48,7 @@ TEST_F(KalmanFilterTest, PredictUsesAxPlusBuForStateUpdate) {
     // Modify our A and B matrices
     Eigen::MatrixXd A(2, 2);
     A << 1, 2, 3, 4;
-    Eigen::MatrixXd B(2, 2);
-    B << 5, 6, 7, 8;
+    Eigen::MatrixXd B = dt * Eigen::MatrixXd::Identity(2, 2);
 
     // Run it through the filter with the updated matrices
     system_model.setA(A);
@@ -57,10 +56,7 @@ TEST_F(KalmanFilterTest, PredictUsesAxPlusBuForStateUpdate) {
     filter->predict(vec_22, filter->getStateTime() + dt);
 
     // Our new state should be: x' = Ax + Bu
-    KFSampleSystemModel ref_model(2, 2);
-    ref_model.update(x_i, vec_22, dt);
-    ref_model.setA(A);
-    Eigen::VectorXd x_target = ref_model.A() * x_i + ref_model.B() * vec_22;
+    Eigen::VectorXd x_target = A * x_i + B * vec_22;
 
     EXPECT_TRUE(filter->getState().isApprox(x_target, 1e-6))
         << "Target: " << x_target.transpose() << ", Actual: " << filter->getState().transpose();
@@ -109,4 +105,20 @@ TEST_F(KalmanFilterTest, CorrectWithEqualCovarianceUpdatesToMeanOfStateAndMeasur
 
 TEST_F(KalmanFilterTest, CorrectWithEqualCovarianceHalvesTheCovarience) {
     correctWithEqualCovarianceHalvesTheCovarience();
+}
+
+TEST_F(KalmanFilterTest, PredictOnlyUpdatesActiveStates) {
+    predictOnlyUpdatesActiveStates();
+}
+
+TEST_F(KalmanFilterTest, PredictOnlyUsesActiveControls) {
+    predictOnlyUsesActiveControls();
+}
+
+TEST_F(KalmanFilterTest, CorrectOnlyUpdatesActiveStates) {
+    correctOnlyUpdatesActiveStates();
+}
+
+TEST_F(KalmanFilterTest, CorrectOnlyUsesActiveMeasurements) {
+    correctOnlyUsesActiveMeasurements();
 }

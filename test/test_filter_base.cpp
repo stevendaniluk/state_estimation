@@ -11,7 +11,7 @@ using namespace state_estimation;
 class TestFilterSystemModel : public SystemModel {
   public:
     TestFilterSystemModel()
-        : SystemModel::SystemModel(3, 3) {}
+        : SystemModel::SystemModel(3, 3, 3) {}
 
     Eigen::VectorXd prediction() { return x_pred_; }
 
@@ -29,7 +29,7 @@ class TestFilterSystemModel : public SystemModel {
 class TestFilterMeasurementModel : public MeasurementModel {
   public:
     TestFilterMeasurementModel()
-        : MeasurementModel::MeasurementModel(3, 3, false) {}
+        : MeasurementModel::MeasurementModel(3, 3) {}
 
     Eigen::VectorXd prediction() { return z_pred_; }
 

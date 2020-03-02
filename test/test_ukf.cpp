@@ -14,7 +14,7 @@ TEST_F(UKFTest, PredictUses_g_FunctionForStateUpdate) {
     filter->predict(vec_22, filter->getStateTime() + dt);
 
     // Run it through the model
-    SampleSystemModel<1> eval_model(2, 2);
+    SampleSystemModel<1> eval_model(2, 2, 2);
     eval_model.update(x_i, vec_22, dt);
     Eigen::VectorXd x_target = eval_model.g();
 
@@ -28,14 +28,14 @@ TEST_F(UKFTest, PredictUsesSystemModelProcessNoise) {
     // Create two filters with two different system models that have different process noise
     // levels
     Eigen::MatrixXd sigma_1 = 1e-2 * Eigen::MatrixXd::Identity(2, 2);
-    SampleSystemModel<1> model_1(2, 2);
-    model_1.setCovariance(sigma_1);
+    SampleSystemModel<1> model_1(2, 2, 2);
+    model_1.setProcessCovariance(sigma_1);
     UKF filter_1(&model_1, x_i, cov_i, t_i);
     filter_1.predict(vec_22, t_i + dt);
 
     Eigen::MatrixXd sigma_2 = 1e-4 * Eigen::MatrixXd::Identity(2, 2);
-    SampleSystemModel<1> model_2(2, 2);
-    model_2.setCovariance(sigma_2);
+    SampleSystemModel<1> model_2(2, 2, 2);
+    model_2.setProcessCovariance(sigma_2);
     UKF filter_2(&model_2, x_i, cov_i, t_i);
     filter_2.predict(vec_22, t_i + dt);
 
@@ -68,7 +68,7 @@ TEST_F(UKFTest, PredictionMeanShiftsWithNonLinearity) {
     // about zero, but when the state is shifted off center the updated state should shift a lot in
     // that direction.
     double dt = 0.1;
-    SampleSystemModel<3> nl_sys_model(2, 2);
+    SampleSystemModel<3> nl_sys_model(2, 2, 2);
     UKF ukf(&nl_sys_model);
 
     ukf.initialize(vec_00, cov_i, t_i);
@@ -102,15 +102,15 @@ TEST_F(UKFTest, PredictionCovarianceChangesWithNonLinearity) {
     // so the covariance should grow.
     double dt = 0.1;
 
-    SampleSystemModel<1> model_1(2, 2);
+    SampleSystemModel<1> model_1(2, 2, 2);
     UKF ukf_1(&model_1, vec_22, cov_i, t_i);
     ukf_1.predict(vec_22, t_i + dt);
 
-    SampleSystemModel<2> model_2(2, 2);
+    SampleSystemModel<2> model_2(2, 2, 2);
     UKF ukf_2(&model_2, vec_22, cov_i, t_i);
     ukf_2.predict(vec_22, t_i + dt);
 
-    SampleSystemModel<3> model_3(2, 2);
+    SampleSystemModel<3> model_3(2, 2, 2);
     UKF ukf_3(&model_3, vec_22, cov_i, t_i);
     ukf_3.predict(vec_22, t_i + dt);
 
@@ -185,4 +185,20 @@ TEST_F(UKFTest, CorrectionCovarianceChangesWithNonLinearity) {
                                           << cov_3 << std::endl
                                           << "cov_2=" << std::endl
                                           << cov_2 << std::endl;
+}
+
+TEST_F(UKFTest, PredictOnlyUpdatesActiveStates) {
+    predictOnlyUpdatesActiveStates();
+}
+
+TEST_F(UKFTest, PredictOnlyUsesActiveControls) {
+    predictOnlyUsesActiveControls();
+}
+
+TEST_F(UKFTest, CorrectOnlyUpdatesActiveStates) {
+    correctOnlyUpdatesActiveStates();
+}
+
+TEST_F(UKFTest, CorrectOnlyUsesActiveMeasurements) {
+    correctOnlyUsesActiveMeasurements();
 }
