@@ -5,9 +5,9 @@
 
 namespace state_estimation {
 
-// Defines the vector indices used for planer 2d states, controls, and measurements
+// Defines the vector indices used for planar 2d states, controls, and measurements
 
-namespace planer_2d {
+namespace planar_2d {
 
 // State vector indices.
 namespace state {
@@ -53,6 +53,6 @@ Eigen::VectorXd subtractState(const Eigen::VectorXd& lhs, const Eigen::VectorXd&
 Eigen::VectorXd weightedSumOfStates(const Eigen::VectorXd& w, const Eigen::MatrixXd& X,
                                     const std::vector<uint8_t>& usage);
 
-}  // namespace planer_2d
+}  // namespace planar_2d
 
 }  // namespace state_estimation

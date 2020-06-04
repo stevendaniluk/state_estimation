@@ -1,8 +1,8 @@
-#include <state_estimation/definitions/planer_2d_motion.h>
+#include <state_estimation/definitions/planar_2d_motion.h>
 #include <state_estimation/utilities/angle_utilities.h>
 
 namespace state_estimation {
-namespace planer_2d {
+namespace planar_2d {
 
 Eigen::VectorXd addState(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs, const std::vector<uint8_t>& usage) {
     // TODO: Account for usage
@@ -35,5 +35,5 @@ Eigen::VectorXd weightedSumOfStates(const Eigen::VectorXd& w, const Eigen::Matri
     return X_sum;
 }
 
-}// end planer_2d namespace
+}// end planar_2d namespace
 } // end state_estimation namespace
