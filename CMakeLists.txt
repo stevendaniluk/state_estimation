@@ -66,6 +66,7 @@ if(BUILD_TESTING MATCHES ON)
     test_angle_utilities
     test_transformation_utilities
     test_imu_utilities
+    test_integration
     test_filter_base
     test_kalman_filter
     test_ekf
