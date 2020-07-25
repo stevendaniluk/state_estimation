@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Eigen/Core>
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
 
 namespace state_estimation {
 
@@ -54,6 +56,34 @@ inline Eigen::VectorXd angleDifference(const Eigen::VectorXd& theta1,
     }
 
     return diff;
+}
+
+// weightedQuaternion
+//
+// Computes a weighted average of quaternions.
+//
+// This is based on the formulation in:
+//   Quaternion Averaging - F. Landis Markley, et al
+//
+// @param w: Weight for each quaternion
+// @param q_set: Quaternions to average
+// @return: Weighted average quaternion
+inline Eigen::Quaterniond weightedQuaternion(
+    const Eigen::VectorXd& w,
+    const std::vector<Eigen::Quaterniond, Eigen::aligned_allocator<Eigen::Quaterniond>>& q_set) {
+    assert(w.size() == q_set.size());
+
+    // Form the weighting matrix
+    Eigen::Matrix<double, 4, 4> m = Eigen::Matrix<double, 4, 4>::Zero();
+    for (size_t i = 0; i < w.size(); ++i) {
+        m += w(i) * (q_set[i].coeffs() * q_set[i].coeffs().transpose());
+    }
+
+    // Average quaternion is formed from the largest eigen vector
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double, 4, 4>> solver(m,
+                                                                      Eigen::ComputeEigenvectors);
+    Eigen::Vector4d vec = solver.eigenvectors().col(3);
+    return Eigen::Quaterniond(vec(3), vec(0), vec(1), vec(2));
 }
 
 // weightedAngleSum
