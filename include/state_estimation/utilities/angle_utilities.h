@@ -20,6 +20,15 @@ inline double constrainAngle(double angle) {
     return angle;
 }
 
+inline Eigen::VectorXd constrainAngle(const Eigen::VectorXd& angle) {
+    Eigen::VectorXd result(angle.size());
+    for (size_t i = 0; i < angle.size(); ++i) {
+        result(i) = constrainAngle(angle(i));
+    }
+
+    return result;
+}
+
 // angleDifference
 //
 // Computes the shortest difference between two angles defined on the interval [-pi, pi].
@@ -33,6 +42,18 @@ inline double angleDifference(double theta1, double theta2) {
     double dtheta = theta1 - theta2;
     dtheta = fmod(dtheta, 2 * M_PI);
     return fmod(2 * dtheta, 2 * M_PI) - dtheta;
+}
+
+inline Eigen::VectorXd angleDifference(const Eigen::VectorXd& theta1,
+                                       const Eigen::VectorXd& theta2) {
+    assert(theta1.size() == theta2.size());
+
+    Eigen::VectorXd diff(theta1.size());
+    for (size_t i = 0; i < theta1.size(); ++i) {
+        diff(i) = angleDifference(theta1(i), theta2(i));
+    }
+
+    return diff;
 }
 
 // weightedAngleSum
