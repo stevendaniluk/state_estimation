@@ -69,8 +69,11 @@ if(BUILD_TESTING MATCHES ON)
     test_integration
     test_filter_base
     test_kalman_filter
+    test_kalman_filter_vs
     test_ekf
+    test_ekf_vs
     test_ukf
+    test_ukf_vs
   )
 
   foreach(target ${TEST_TARGETS})

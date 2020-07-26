@@ -6,17 +6,16 @@
 
 namespace state_estimation {
 
-// KalmanFilter
+// KalmanFilterVS
 //
 // Implements an Kalman Filter with linear dynamics.
 //
 // This class simply provides the update equations for the prediction and correction steps.
 //
-// This is a fixed state implementation, it will use the entire state, control, and measurement
-// vectors (unlike the VS implementation). It will not have the over head of using variable state
-// sizes.
-class KalmanFilter : public FilterBase<system_models::LinearSystemModel,
-                                       measurement_models::LinearMeasurementModel> {
+// This is a variable state version, which will account for only a subset of the state, control,
+// and measurement spaces being used.
+class KalmanFilterVS : public FilterBase<system_models::LinearSystemModel,
+                                         measurement_models::LinearMeasurementModel> {
   public:
     using FilterBase::FilterBase;
 

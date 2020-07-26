@@ -6,23 +6,22 @@
 
 namespace state_estimation {
 
-// UKF
+// UKFVS
 //
 // Implements an Unscented Kalman Filter.
 //
 // This class simply provides the update equations for the prediction and correction steps in a
 // UKF.
 //
-// This is a fixed state implementation, it will use the entire state, control, and measurement
-// vectors (unlike the VS implementation). It will not have the over head of using variable state
-// sizes.
-class UKF : public FilterBase<system_models::NonlinearSystemModel,
-                              measurement_models::NonlinearMeasurementModel> {
+// This is a variable state version, which will account for only a subset of the state, control,
+// and measurement spaces being used.
+class UKFVS : public FilterBase<system_models::NonlinearSystemModel,
+                                measurement_models::NonlinearMeasurementModel> {
   public:
-    UKF(system_models::NonlinearSystemModel* system_model);
+    UKFVS(system_models::NonlinearSystemModel* system_model);
 
-    UKF(system_models::NonlinearSystemModel* system_model, const Eigen::VectorXd& x,
-        const Eigen::MatrixXd& cov, double timestamp);
+    UKFVS(system_models::NonlinearSystemModel* system_model, const Eigen::VectorXd& x,
+          const Eigen::MatrixXd& cov, double timestamp);
 
     // setSigmaPointParameters
     //

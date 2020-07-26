@@ -7,6 +7,8 @@ using namespace state_estimation;
 // Since the KalmanFilter class is only responsible for implementing the KF update equations, only
 // the correctness of those equations are tested
 
+class KalmanFilterTest : public KalmanFilterTestT<KalmanFilter> {};
+
 TEST_F(KalmanFilterTest, PredictUsesAxPlusBuForStateUpdate) {
     predictUsesAxPlusBuForStateUpdate();
 }
@@ -37,20 +39,4 @@ TEST_F(KalmanFilterTest, CorrectWithEqualCovarianceUpdatesToMeanOfStateAndMeasur
 
 TEST_F(KalmanFilterTest, CorrectWithEqualCovarianceHalvesTheCovarience) {
     correctWithEqualCovarianceHalvesTheCovarience();
-}
-
-TEST_F(KalmanFilterTest, PredictOnlyUpdatesActiveStates) {
-    predictOnlyUpdatesActiveStates();
-}
-
-TEST_F(KalmanFilterTest, PredictOnlyUsesActiveControls) {
-    predictOnlyUsesActiveControls();
-}
-
-TEST_F(KalmanFilterTest, CorrectOnlyUpdatesActiveStates) {
-    correctOnlyUpdatesActiveStates();
-}
-
-TEST_F(KalmanFilterTest, CorrectOnlyUsesActiveMeasurements) {
-    correctOnlyUsesActiveMeasurements();
 }

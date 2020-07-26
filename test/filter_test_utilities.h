@@ -1,7 +1,4 @@
 #include <gtest/gtest.h>
-#include <state_estimation/filters/ekf.h>
-#include <state_estimation/filters/kalman_filter.h>
-#include <state_estimation/filters/ukf.h>
 #include <state_estimation/measurement_models/linear_measurement_model.h>
 #include <state_estimation/measurement_models/nonlinear_measurement_model.h>
 #include <state_estimation/system_models/linear_system_model.h>
@@ -82,6 +79,7 @@ class FilterTest : public ::testing::Test {
   protected:
     void SetUp() override { filter.reset(new FilterT(&system_model, x_i, cov_i, t_i)); }
 
+  public:
     std::unique_ptr<FilterT> filter;
     SysT system_model = SysT(2, 2, 2);
     MeasT meas_model = MeasT(2, 2);
@@ -326,8 +324,9 @@ class KFSampleMeasurementModel : public measurement_models::LinearMeasurementMod
     void myUpdate(const Eigen::VectorXd& x, double dt) override {}
 };
 
-class KalmanFilterTest
-    : public FilterTest<KalmanFilter, KFSampleSystemModel, KFSampleMeasurementModel> {
+template <typename FilterT>
+class KalmanFilterTestT
+    : public FilterTest<FilterT, KFSampleSystemModel, KFSampleMeasurementModel> {
   public:
     void predictUsesAxPlusBuForStateUpdate() {
         double dt = 0.4;
@@ -338,15 +337,16 @@ class KalmanFilterTest
         Eigen::MatrixXd B = dt * Eigen::MatrixXd::Identity(2, 2);
 
         // Run it through the filter with the updated matrices
-        system_model.setA(A);
-        system_model.setB(B);
-        filter->predict(vec_22, filter->getStateTime() + dt);
+        this->system_model.setA(A);
+        this->system_model.setB(B);
+        this->filter->predict(this->vec_22, this->filter->getStateTime() + dt);
 
         // Our new state should be: x' = Ax + Bu
-        Eigen::VectorXd x_target = A * x_i + B * vec_22;
+        Eigen::VectorXd x_target = A * this->x_i + B * this->vec_22;
 
-        EXPECT_TRUE(filter->getState().isApprox(x_target, 1e-6))
-            << "Target: " << x_target.transpose() << ", Actual: " << filter->getState().transpose();
+        EXPECT_TRUE(this->filter->getState().isApprox(x_target, 1e-6))
+            << "Target: " << x_target.transpose()
+            << ", Actual: " << this->filter->getState().transpose();
     }
 
     void predictUsesAMatrixForCovarianceUpdate() {
@@ -357,77 +357,83 @@ class KalmanFilterTest
         A << 1, 2, 3, 4;
 
         // Run it through the filter, with zero process noise to isolate the Jacobian
-        system_model.setA(A);
-        system_model.setProcessCovariance(Eigen::MatrixXd::Zero(2, 2));
-        filter->predict(vec_22, filter->getStateTime() + dt);
+        this->system_model.setA(A);
+        this->system_model.setProcessCovariance(Eigen::MatrixXd::Zero(2, 2));
+        this->filter->predict(this->vec_22, this->filter->getStateTime() + dt);
 
         // Compute the target covariance with the Kalman update of Sigma = A * Sigma * A'
-        Eigen::MatrixXd cov_target = A * cov_i * A.transpose();
+        Eigen::MatrixXd cov_target = A * this->cov_i * A.transpose();
 
-        EXPECT_TRUE(filter->getCovariance().isApprox(cov_target, 1e-6)) << "Target:" << std::endl
-                                                                        << cov_target << std::endl
-                                                                        << "Actual:" << std::endl
-                                                                        << filter->getCovariance();
+        EXPECT_TRUE(this->filter->getCovariance().isApprox(cov_target, 1e-6))
+            << "Target:" << std::endl
+            << cov_target << std::endl
+            << "Actual:" << std::endl
+            << this->filter->getCovariance();
     }
 };
 
 /////////////////////////////////
 // EKF test utilities
 
-class EKFTest : public FilterTest<EKF, SampleSystemModel<1>, SampleMeasurementModel<1>> {
+template <typename FilterT>
+class EKFTestT : public FilterTest<FilterT, SampleSystemModel<1>, SampleMeasurementModel<1>> {
   public:
     void predictUses_g_FunctionForStateUpdate() {
         double dt = 0.4;
 
         // Run it through the filter
-        filter->predict(vec_22, filter->getStateTime() + dt);
+        this->filter->predict(this->vec_22, this->filter->getStateTime() + dt);
 
         // Run it through the model
         SampleSystemModel<1> eval_model(2, 2, 2);
-        eval_model.update(x_i, vec_22, dt);
+        eval_model.update(this->x_i, this->vec_22, dt);
         Eigen::VectorXd x_target = eval_model.g();
 
-        EXPECT_TRUE(filter->getState().isApprox(x_target, 1e-6))
-            << "Target: " << x_target.transpose() << ", Actual: " << filter->getState().transpose();
+        EXPECT_TRUE(this->filter->getState().isApprox(x_target, 1e-6))
+            << "Target: " << x_target.transpose()
+            << ", Actual: " << this->filter->getState().transpose();
     }
 
     void predictUses_G_FunctionForCovarianceUpdate() {
         double dt = 0.4;
 
         // Run it through the filter, with zero process noise to isolate the Jacobian
-        system_model.setProcessCovariance(Eigen::MatrixXd::Zero(2, 2));
-        filter->predict(vec_22, filter->getStateTime() + dt);
+        this->system_model.setProcessCovariance(Eigen::MatrixXd::Zero(2, 2));
+        this->filter->predict(this->vec_22, this->filter->getStateTime() + dt);
 
         // Compute the target covariance with the EKF update of Sigma = G * Sigma * G'
         SampleSystemModel<1> eval_model(2, 2, 2);
-        eval_model.update(x_i, vec_22, dt);
-        Eigen::MatrixXd cov_target = eval_model.G() * cov_i * eval_model.G().transpose();
+        eval_model.update(this->x_i, this->vec_22, dt);
+        Eigen::MatrixXd cov_target = eval_model.G() * this->cov_i * eval_model.G().transpose();
 
-        EXPECT_TRUE(filter->getCovariance().isApprox(cov_target, 1e-6)) << "Target:" << std::endl
-                                                                        << cov_target << std::endl
-                                                                        << "Actual:" << std::endl
-                                                                        << filter->getCovariance();
+        EXPECT_TRUE(this->filter->getCovariance().isApprox(cov_target, 1e-6))
+            << "Target:" << std::endl
+            << cov_target << std::endl
+            << "Actual:" << std::endl
+            << this->filter->getCovariance();
     }
 };
 
 /////////////////////////////////
 // UKF test utilities
 
-class UKFTest : public FilterTest<UKF, SampleSystemModel<1>, SampleMeasurementModel<1>> {
+template <typename FilterT>
+class UKFTestT : public FilterTest<FilterT, SampleSystemModel<1>, SampleMeasurementModel<1>> {
   public:
     void predictUses_g_FunctionForStateUpdate() {
         double dt = 0.4;
 
         // Run it through the filter
-        filter->predict(vec_22, filter->getStateTime() + dt);
+        this->filter->predict(this->vec_22, this->filter->getStateTime() + dt);
 
         // Run it through the model
         SampleSystemModel<1> eval_model(2, 2, 2);
-        eval_model.update(x_i, vec_22, dt);
+        eval_model.update(this->x_i, this->vec_22, dt);
         Eigen::VectorXd x_target = eval_model.g();
 
-        EXPECT_TRUE(filter->getState().isApprox(x_target, 1e-6))
-            << "Target: " << x_target.transpose() << ", Actual: " << filter->getState().transpose();
+        EXPECT_TRUE(this->filter->getState().isApprox(x_target, 1e-6))
+            << "Target: " << x_target.transpose()
+            << ", Actual: " << this->filter->getState().transpose();
     }
 
     void predictUsesSystemModelProcessNoise() {
@@ -438,14 +444,14 @@ class UKFTest : public FilterTest<UKF, SampleSystemModel<1>, SampleMeasurementMo
         Eigen::MatrixXd sigma_1 = 1e-2 * Eigen::MatrixXd::Identity(2, 2);
         SampleSystemModel<1> model_1(2, 2, 2);
         model_1.setProcessCovariance(sigma_1);
-        UKF filter_1(&model_1, x_i, cov_i, t_i);
-        filter_1.predict(vec_22, t_i + dt);
+        FilterT filter_1(&model_1, this->x_i, this->cov_i, this->t_i);
+        filter_1.predict(this->vec_22, this->t_i + dt);
 
         Eigen::MatrixXd sigma_2 = 1e-4 * Eigen::MatrixXd::Identity(2, 2);
         SampleSystemModel<1> model_2(2, 2, 2);
         model_2.setProcessCovariance(sigma_2);
-        UKF filter_2(&model_2, x_i, cov_i, t_i);
-        filter_2.predict(vec_22, t_i + dt);
+        FilterT filter_2(&model_2, this->x_i, this->cov_i, this->t_i);
+        filter_2.predict(this->vec_22, this->t_i + dt);
 
         // The covariance between the two filters should only differ by the difference between the
         // two process noise levels since the process noise is added on top of the system update
@@ -473,30 +479,30 @@ class UKFTest : public FilterTest<UKF, SampleSystemModel<1>, SampleMeasurementMo
         // in that direction.
         double dt = 0.1;
         SampleSystemModel<3> nl_sys_model(2, 2, 2);
-        UKF ukf(&nl_sys_model);
+        FilterT ukf(&nl_sys_model);
 
-        ukf.initialize(vec_00, cov_i, t_i);
-        ukf.predict(vec_22, t_i + dt);
+        ukf.initialize(this->vec_00, this->cov_i, this->t_i);
+        ukf.predict(this->vec_22, this->t_i + dt);
 
         // TODO: FIX THIS!!
 
         // Target is an identity plus the control scaled by time
-        Eigen::VectorXd x_target = dt * (vec_11 + vec_22);
+        Eigen::VectorXd x_target = dt * (this->vec_11 + this->vec_22);
         EXPECT_TRUE(ukf.getState().isApprox(x_target, 1e-6))
             << "Target: " << x_target.transpose() << ", Actual: " << ukf.getState().transpose();
 
         // Reset, but with the initial state shifted slightly off the origin in the positive
         // direction
-        ukf.initialize(vec_11, cov_i, t_i);
-        ukf.predict(vec_22, t_i + dt);
+        ukf.initialize(this->vec_11, this->cov_i, this->t_i);
+        ukf.predict(this->vec_22, this->t_i + dt);
 
         EXPECT_GT(ukf.getState()(0), x_target(0));
         EXPECT_GT(ukf.getState()(1), x_target(1));
 
         // Reset, but with the initial state shifted slightly off the origin in the negative
         // direction
-        ukf.initialize(vec_n11, cov_i, t_i);
-        ukf.predict(vec_22, t_i + dt);
+        ukf.initialize(this->vec_n11, this->cov_i, this->t_i);
+        ukf.predict(this->vec_22, this->t_i + dt);
 
         EXPECT_LT(ukf.getState()(0), x_target(0));
         EXPECT_LT(ukf.getState()(1), x_target(1));
@@ -509,16 +515,16 @@ class UKFTest : public FilterTest<UKF, SampleSystemModel<1>, SampleMeasurementMo
         double dt = 0.1;
 
         SampleSystemModel<1> model_1(2, 2, 2);
-        UKF ukf_1(&model_1, vec_22, cov_i, t_i);
-        ukf_1.predict(vec_22, t_i + dt);
+        FilterT ukf_1(&model_1, this->vec_22, this->cov_i, this->t_i);
+        ukf_1.predict(this->vec_22, this->t_i + dt);
 
         SampleSystemModel<2> model_2(2, 2, 2);
-        UKF ukf_2(&model_2, vec_22, cov_i, t_i);
-        ukf_2.predict(vec_22, t_i + dt);
+        FilterT ukf_2(&model_2, this->vec_22, this->cov_i, this->t_i);
+        ukf_2.predict(this->vec_22, this->t_i + dt);
 
         SampleSystemModel<3> model_3(2, 2, 2);
-        UKF ukf_3(&model_3, vec_22, cov_i, t_i);
-        ukf_3.predict(vec_22, t_i + dt);
+        FilterT ukf_3(&model_3, this->vec_22, this->cov_i, this->t_i);
+        ukf_3.predict(this->vec_22, this->t_i + dt);
 
         EXPECT_GT(ukf_2.getCovariance().norm(), ukf_1.getCovariance().norm())
             << "C2=" << std::endl
@@ -538,52 +544,53 @@ class UKFTest : public FilterTest<UKF, SampleSystemModel<1>, SampleMeasurementMo
         // the opposite direction (because the predicted measurement will be greater in magnitude
         // than the actual measurement)
         SampleMeasurementModel<3> nl_meas_model(2, 2);
-        filter->initialize(vec_00, cov_i, t_i);
+        this->filter->initialize(this->vec_00, this->cov_i, this->t_i);
 
-        filter->correct(vec_00, cov_i, t_i, &nl_meas_model);
+        this->filter->correct(this->vec_00, this->cov_i, this->t_i, &nl_meas_model);
 
         // Target is the measurement supplied
-        Eigen::VectorXd x_target = vec_00;
-        EXPECT_TRUE(filter->getState().isApprox(x_target, 1e-6))
-            << "Target: " << x_target.transpose() << ", Actual: " << filter->getState().transpose();
+        Eigen::VectorXd x_target = this->vec_00;
+        EXPECT_TRUE(this->filter->getState().isApprox(x_target, 1e-6))
+            << "Target: " << x_target.transpose()
+            << ", Actual: " << this->filter->getState().transpose();
 
         // Reset, but with the initial state shifted slightly off the origin in the positive
         // direction
-        filter->initialize(vec_22, cov_i, t_i);
-        filter->correct(vec_22, cov_i, t_i, &nl_meas_model);
+        this->filter->initialize(this->vec_22, this->cov_i, this->t_i);
+        this->filter->correct(this->vec_22, this->cov_i, this->t_i, &nl_meas_model);
 
-        EXPECT_LT(filter->getState()(0), vec_22(0));
-        EXPECT_LT(filter->getState()(1), vec_22(1));
+        EXPECT_LT(this->filter->getState()(0), this->vec_22(0));
+        EXPECT_LT(this->filter->getState()(1), this->vec_22(1));
 
         // Reset, but with the initial state shifted slightly off the origin in the negative
         // direction
-        filter->initialize(vec_n22, cov_i, t_i);
-        filter->correct(vec_n22, cov_i, t_i, &nl_meas_model);
+        this->filter->initialize(this->vec_n22, this->cov_i, this->t_i);
+        this->filter->correct(this->vec_n22, this->cov_i, this->t_i, &nl_meas_model);
 
-        EXPECT_GT(filter->getState()(0), vec_n22(0));
-        EXPECT_GT(filter->getState()(1), vec_n22(1));
+        EXPECT_GT(this->filter->getState()(0), this->vec_n22(0));
+        EXPECT_GT(this->filter->getState()(1), this->vec_n22(1));
     }
 
     void correctionCovarianceChangesWithNonLinearity() {
         // As the exponent in the system model becomes larger the non linearity should be more
         // exaggerated so the sigma points post transform should be much further away from each
         // other and the covariance will decrease because these measurements are more informative.
-        Eigen::VectorXd x = vec_22;
+        Eigen::VectorXd x = this->vec_22;
 
         SampleMeasurementModel<1> nl_meas_model_1(2, 2);
-        filter->initialize(x, cov_i, t_i);
-        filter->correct(x, cov_i, t_i, &nl_meas_model_1);
-        Eigen::MatrixXd cov_1 = filter->getCovariance();
+        this->filter->initialize(x, this->cov_i, this->t_i);
+        this->filter->correct(x, this->cov_i, this->t_i, &nl_meas_model_1);
+        Eigen::MatrixXd cov_1 = this->filter->getCovariance();
 
         SampleMeasurementModel<2> nl_meas_model_2(2, 2);
-        filter->initialize(x, cov_i, t_i);
-        filter->correct(x, cov_i, t_i, &nl_meas_model_2);
-        Eigen::MatrixXd cov_2 = filter->getCovariance();
+        this->filter->initialize(x, this->cov_i, this->t_i);
+        this->filter->correct(x, this->cov_i, this->t_i, &nl_meas_model_2);
+        Eigen::MatrixXd cov_2 = this->filter->getCovariance();
 
         SampleMeasurementModel<4> nl_meas_model_3(2, 2);
-        filter->initialize(x, cov_i, t_i);
-        filter->correct(x, cov_i, t_i, &nl_meas_model_3);
-        Eigen::MatrixXd cov_3 = filter->getCovariance();
+        this->filter->initialize(x, this->cov_i, this->t_i);
+        this->filter->correct(x, this->cov_i, this->t_i, &nl_meas_model_3);
+        Eigen::MatrixXd cov_3 = this->filter->getCovariance();
 
         EXPECT_LT(cov_2.norm(), cov_1.norm()) << "cov_2=" << std::endl
                                               << cov_2 << std::endl

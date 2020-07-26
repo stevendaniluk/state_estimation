@@ -6,18 +6,17 @@
 
 namespace state_estimation {
 
-// EKF
+// EKFVS
 //
 // Implements an Extended Kalman Filter.
 //
 // This class simply provides the update equations for the prediction and correction steps in an
 // EKF.
 //
-// This is a fixed state implementation, it will use the entire state, control, and measurement
-// vectors (unlike the VS implementation). It will not have the over head of using variable state
-// sizes.
-class EKF : public FilterBase<system_models::NonlinearSystemModel,
-                              measurement_models::NonlinearMeasurementModel> {
+// This is a variable state version, which will account for only a subset of the state, control,
+// and measurement spaces being used.
+class EKFVS : public FilterBase<system_models::NonlinearSystemModel,
+                                measurement_models::NonlinearMeasurementModel> {
   public:
     using FilterBase::FilterBase;
 
