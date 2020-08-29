@@ -303,14 +303,6 @@ bool FilterBase<SysT, MeasT>::rewindHistory(double timestamp,
 }
 
 template <typename SysT, typename MeasT>
-std::string FilterBase<SysT, MeasT>::printMatrix(const Eigen::MatrixXd& mat) {
-    std::ostringstream stream;
-    stream << ((mat.cols() > 1) ? mat : mat.transpose())
-                  .format(Eigen::IOFormat(6, 0, ", ", "\n", "[", "]"));
-    return stream.str();
-}
-
-template <typename SysT, typename MeasT>
 void FilterBase<SysT, MeasT>::applyInput(const FilterInput& input) {
     if (params_.rewind_history) {
         history_.push_back(filter_state_);

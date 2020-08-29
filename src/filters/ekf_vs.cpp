@@ -1,5 +1,6 @@
 #include <state_estimation/filters/ekf_vs.h>
 #include <state_estimation/utilities/data_subset_utilities.h>
+#include <state_estimation/utilities/logging.h>
 #include <Eigen/Dense>
 
 namespace state_estimation {

@@ -1,4 +1,5 @@
 #include <state_estimation/filters/kalman_filter.h>
+#include <state_estimation/utilities/logging.h>
 #include <Eigen/Dense>
 
 namespace state_estimation {

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <state_estimation/measurement_models/nonlinear_measurement_model.h>
 #include <state_estimation/system_models/nonlinear_system_model.h>
+#include <state_estimation/utilities/logging.h>
 #include <Eigen/Core>
 
 namespace state_estimation {
@@ -41,9 +42,9 @@ void jacobianMatchesNumericalApproximation(system_models::NonlinearSystemModel* 
     }
 
     EXPECT_TRUE(G_num.isApprox(G_target, tolerance)) << "Target:" << std::endl
-                                                     << G_target << std::endl
+                                                     << printMatrix(G_target) << std::endl
                                                      << "Actual:" << std::endl
-                                                     << G_num;
+                                                     << printMatrix(G_num);
 }
 
 // jacobianMatchesNumericalApproximation
@@ -80,9 +81,9 @@ void jacobianMatchesNumericalApproximation(measurement_models::NonlinearMeasurem
     }
 
     EXPECT_TRUE(H_num.isApprox(H_target, tolerance)) << "Target:" << std::endl
-                                                     << H_target << std::endl
+                                                     << printMatrix(H_target) << std::endl
                                                      << "Actual:" << std::endl
-                                                     << H_num;
+                                                     << printMatrix(H_num);
 }
 
 // inactiveStatesDoNotChange

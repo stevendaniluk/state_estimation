@@ -3,6 +3,7 @@
 #include <state_estimation/measurement_models/nonlinear_measurement_model.h>
 #include <state_estimation/system_models/linear_system_model.h>
 #include <state_estimation/system_models/nonlinear_system_model.h>
+#include <state_estimation/utilities/logging.h>
 #include <Eigen/Core>
 
 using namespace state_estimation;
@@ -122,9 +123,9 @@ class FilterTest : public ::testing::Test {
         Eigen::MatrixXd target_diff = sigma_2 - sigma_1;
 
         EXPECT_TRUE(cov_diff.isApprox(target_diff, 1e-6)) << "Target:" << std::endl
-                                                          << target_diff << std::endl
+                                                          << printMatrix(target_diff) << std::endl
                                                           << "Actual:" << std::endl
-                                                          << cov_diff;
+                                                          << printMatrix(cov_diff);
     }
 
     void zeroMeasurementCovarianceProducesZeroEstimateCovariance() {
@@ -136,10 +137,11 @@ class FilterTest : public ::testing::Test {
         filter->correct(vec_11, 0.0 * cov_i, 1.0, &meas_model);
 
         Eigen::MatrixXd target_cov = 0.0 * cov_i;
-        EXPECT_TRUE(filter->getCovariance().isApprox(target_cov, 1e-6)) << "Target:" << std::endl
-                                                                        << target_cov << std::endl
-                                                                        << "Actual:" << std::endl
-                                                                        << filter->getCovariance();
+        EXPECT_TRUE(filter->getCovariance().isApprox(target_cov, 1e-6))
+            << "Target:" << std::endl
+            << printMatrix(target_cov) << std::endl
+            << "Actual:" << std::endl
+            << printMatrix(filter->getCovariance());
     }
 
     void zeroMeasurementCovarianceSetsStateToPredictedMeasurement() {
@@ -191,10 +193,11 @@ class FilterTest : public ::testing::Test {
         filter->correct(vec_11, cov_i, t_i, &meas_model);
 
         Eigen::MatrixXd cov_target = 0.5 * cov_i;
-        EXPECT_TRUE(filter->getCovariance().isApprox(cov_target, 1e-6)) << "Target:" << std::endl
-                                                                        << cov_target << std::endl
-                                                                        << "Actual:" << std::endl
-                                                                        << filter->getCovariance();
+        EXPECT_TRUE(filter->getCovariance().isApprox(cov_target, 1e-6))
+            << "Target:" << std::endl
+            << printMatrix(cov_target) << std::endl
+            << "Actual:" << std::endl
+            << printMatrix(filter->getCovariance());
     }
 
     void predictOnlyUpdatesActiveStates() {
@@ -366,9 +369,9 @@ class KalmanFilterTestT
 
         EXPECT_TRUE(this->filter->getCovariance().isApprox(cov_target, 1e-6))
             << "Target:" << std::endl
-            << cov_target << std::endl
+            << printMatrix(cov_target) << std::endl
             << "Actual:" << std::endl
-            << this->filter->getCovariance();
+            << printMatrix(this->filter->getCovariance());
     }
 };
 
@@ -408,9 +411,9 @@ class EKFTestT : public FilterTest<FilterT, SampleSystemModel<1>, SampleMeasurem
 
         EXPECT_TRUE(this->filter->getCovariance().isApprox(cov_target, 1e-6))
             << "Target:" << std::endl
-            << cov_target << std::endl
+            << printMatrix(cov_target) << std::endl
             << "Actual:" << std::endl
-            << this->filter->getCovariance();
+            << printMatrix(this->filter->getCovariance());
     }
 };
 
@@ -459,9 +462,9 @@ class UKFTestT : public FilterTest<FilterT, SampleSystemModel<1>, SampleMeasurem
         Eigen::MatrixXd target_diff = sigma_2 - sigma_1;
 
         EXPECT_TRUE(cov_diff.isApprox(target_diff, 1e-6)) << "Target:" << std::endl
-                                                          << target_diff << std::endl
+                                                          << printMatrix(target_diff) << std::endl
                                                           << "Actual:" << std::endl
-                                                          << cov_diff;
+                                                          << printMatrix(cov_diff);
     }
 
     // The four tests below all attempt to exploit how the UKF handles non linearities. Although we
@@ -528,14 +531,14 @@ class UKFTestT : public FilterTest<FilterT, SampleSystemModel<1>, SampleMeasurem
 
         EXPECT_GT(ukf_2.getCovariance().norm(), ukf_1.getCovariance().norm())
             << "C2=" << std::endl
-            << ukf_2.getCovariance() << std::endl
+            << printMatrix(ukf_2.getCovariance()) << std::endl
             << "C1=" << std::endl
-            << ukf_1.getCovariance() << std::endl;
+            << printMatrix(ukf_1.getCovariance()) << std::endl;
         EXPECT_GT(ukf_3.getCovariance().norm(), ukf_2.getCovariance().norm())
             << "C3=" << std::endl
-            << ukf_3.getCovariance() << std::endl
+            << printMatrix(ukf_3.getCovariance()) << std::endl
             << "C2=" << std::endl
-            << ukf_2.getCovariance() << std::endl;
+            << printMatrix(ukf_2.getCovariance()) << std::endl;
     }
 
     void correctionMeanShiftsWithNonLinearity() {
@@ -593,12 +596,12 @@ class UKFTestT : public FilterTest<FilterT, SampleSystemModel<1>, SampleMeasurem
         Eigen::MatrixXd cov_3 = this->filter->getCovariance();
 
         EXPECT_LT(cov_2.norm(), cov_1.norm()) << "cov_2=" << std::endl
-                                              << cov_2 << std::endl
+                                              << printMatrix(cov_2) << std::endl
                                               << "cov_1=" << std::endl
-                                              << cov_1 << std::endl;
+                                              << printMatrix(cov_1) << std::endl;
         EXPECT_LT(cov_3.norm(), cov_2.norm()) << "cov_3=" << std::endl
-                                              << cov_3 << std::endl
+                                              << printMatrix(cov_3) << std::endl
                                               << "cov_2=" << std::endl
-                                              << cov_2 << std::endl;
+                                              << printMatrix(cov_2) << std::endl;
     }
 };
