@@ -19,9 +19,8 @@ static const int AX = 4;
 static const int AY = 5;
 static const int PSI = 6;
 static const int VPSI = 7;
-static const int APSI = 8;
 
-static const int DIMS = 9;
+static const int DIMS = 8;
 }  // namespace state
 
 // The methods below define the addition, subtraction, and scaling operations for the state vector
