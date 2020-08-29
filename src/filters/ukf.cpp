@@ -90,8 +90,10 @@ void UKF::myPredict(const Eigen::VectorXd& u, double dt) {
               << printMatrix(sigma_offset) << std::endl
               << "Sigma points=" << std::endl
               << printMatrix(sigma_pts) << std::endl
-              << "R=" << std::endl
-              << printMatrix(system_model_->covariance()) << std::endl
+              << "P=" << std::endl
+              << printMatrix(system_model_->P()) << std::endl
+              << "V=" << std::endl
+              << printMatrix(system_model_->V()) << std::endl
               << "x=" << printMatrix(filter_state_.x) << std::endl
               << "Covariance=" << std::endl
               << printMatrix(filter_state_.covariance) << std::endl;
