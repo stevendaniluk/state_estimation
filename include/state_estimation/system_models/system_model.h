@@ -16,6 +16,9 @@ namespace state_estimation {
 //
 // There is also a version of update that does not take in any control, for systems that aren't
 // modeled with any control inputs and the current state should be propegated forward.
+//
+// The transform stored by this object represents the transform from the control frame to the
+// state frame.
 class SystemModel : public FilterModel {
   public:
     // Constructor

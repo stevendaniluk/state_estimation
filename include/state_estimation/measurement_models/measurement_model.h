@@ -14,6 +14,9 @@ namespace state_estimation {
 // this provides an update method so that all computations can be performed once in the same place,
 // and the values (e.g. predicted measurement and covariance) can simply be retrieved with
 // accessors.
+//
+// The transform stored by this object represents the transform from the state frame to the
+// measurement frame.
 class MeasurementModel : public FilterModel {
   public:
     // Constructor
