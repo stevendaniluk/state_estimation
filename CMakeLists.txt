@@ -74,6 +74,9 @@ if(BUILD_TESTING MATCHES ON)
     test_ekf_vs
     test_ukf
     test_ukf_vs
+    test_six_d_rates_imu_meas_model
+    test_six_d_rates_odom_meas_model
+    test_six_d_rates_system_model
   )
 
   foreach(target ${TEST_TARGETS})
