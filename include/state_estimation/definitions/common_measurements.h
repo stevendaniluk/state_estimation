@@ -6,6 +6,16 @@ namespace state_estimation {
 
 namespace meas {
 
+// Odometry
+namespace odom {
+static const int VX = 0;
+static const int VY = 1;
+static const int VZ = 2;
+static const int VPSI = 3;
+
+static const int DIMS = 4;
+}  // namespace odom
+
 // Accelerometer
 namespace accel {
 static const int AX = 0;
