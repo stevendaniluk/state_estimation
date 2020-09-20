@@ -124,3 +124,53 @@ TEST(CovarianceTransformations, ComputedWithRSigmaRt) {
         << sigma_target.transpose() << ", Actual:" << std::endl
         << sigma_result.transpose();
 }
+
+TEST(orientationFromGravityVector, PureZProducesIdentity) {
+    Eigen::Vector3d g(0, 0, -9.81);
+    Eigen::Quaterniond q = orientationFromGravityVector(g);
+
+    EXPECT_FLOAT_EQ(1.0, q.w());
+    EXPECT_FLOAT_EQ(0.0, q.x());
+    EXPECT_FLOAT_EQ(0.0, q.y());
+    EXPECT_FLOAT_EQ(0.0, q.z());
+}
+
+TEST(orientationFromGravityVector, PurePitch) {
+    double theta = M_PI / 6;
+    Eigen::Quaterniond q_target =
+        Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitY()));
+
+    Eigen::Vector3d g = q_target * Eigen::Vector3d(0, 0, -9.81);
+    Eigen::Quaterniond q = orientationFromGravityVector(g);
+
+    EXPECT_NEAR(q_target.w(), q.w(), 1e-3);
+    EXPECT_NEAR(q_target.x(), q.x(), 1e-3);
+    EXPECT_NEAR(q_target.y(), q.y(), 1e-3);
+    EXPECT_NEAR(q_target.z(), q.z(), 1e-3);
+}
+
+TEST(orientationFromGravityVector, PureRoll) {
+    double theta = M_PI / 6;
+    Eigen::Quaterniond q_target =
+        Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitX()));
+
+    Eigen::Vector3d g = q_target * Eigen::Vector3d(0, 0, -9.81);
+    Eigen::Quaterniond q = orientationFromGravityVector(g);
+
+    EXPECT_NEAR(q_target.w(), q.w(), 1e-3);
+    EXPECT_NEAR(q_target.x(), q.x(), 1e-3);
+    EXPECT_NEAR(q_target.y(), q.y(), 1e-3);
+    EXPECT_NEAR(q_target.z(), q.z(), 1e-3);
+}
+
+TEST(orientationFromGravityVector, RollAndPitch) {
+    double theta = M_PI / 6;
+    Eigen::Quaterniond q_target =
+        Eigen::Quaterniond(Eigen::AngleAxisd(theta, Eigen::Vector3d(3, 1, 0).normalized()));
+
+    Eigen::Vector3d g = q_target * Eigen::Vector3d(0, 0, -9.81);
+    Eigen::Quaterniond q = orientationFromGravityVector(g);
+
+    EXPECT_NEAR(q_target.y(), q.y(), 1e-3);
+    EXPECT_NEAR(q_target.z(), q.z(), 1e-3);
+}

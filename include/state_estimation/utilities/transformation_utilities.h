@@ -47,4 +47,13 @@ Eigen::Vector3d transformAngularVelocity(const Eigen::Vector3d& w, const Eigen::
 // @return Covariance matrix transformed to the target frame
 Eigen::Matrix3d transformCovariance(const Eigen::Matrix3d& cov, const Eigen::Matrix3d& R);
 
+// orientationFromGravityVector
+//
+// Computes an orientation from the gravity vector with the roll and pitch determined from
+// gravity, and the yaw kept at zero.
+//
+// @param g: gravity vector (un normalized)
+// @return: Rotation to align with the gravity vector that has zero yaw rotation
+Eigen::Quaterniond orientationFromGravityVector(Eigen::Vector3d g);
+
 }  // namespace state_estimation
