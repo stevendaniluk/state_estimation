@@ -85,7 +85,7 @@ class FilterBase {
         bool allow_measurements_in_past = false;
     };
 
-    // Constructor with state initialized to empty vectors and matrices
+    // Constructor with state initialized to zero vectors and matrices
     //
     // @param system_model: Model describing the system dynamics
     FilterBase(SysT* system_model);

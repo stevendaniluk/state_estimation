@@ -2,8 +2,9 @@ namespace state_estimation {
 
 template <typename SysT, typename MeasT>
 FilterBase<SysT, MeasT>::FilterBase(SysT* system_model)
-    : FilterBase<SysT, MeasT>::FilterBase(system_model, Eigen::VectorXd(), Eigen::MatrixXd(), 0.0) {
-}
+    : FilterBase<SysT, MeasT>::FilterBase(
+          system_model, Eigen::VectorXd::Zero(system_model->stateSize()),
+          Eigen::MatrixXd::Zero(system_model->stateSize(), system_model->stateSize()), 0.0) {}
 
 template <typename SysT, typename MeasT>
 FilterBase<SysT, MeasT>::FilterBase(SysT* system_model, const Eigen::VectorXd& x,
