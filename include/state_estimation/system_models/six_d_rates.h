@@ -9,7 +9,12 @@ namespace system_models {
 //
 // Represents the system dynamics for a 6DOF system that undergoes omni directional motion.
 //
-// The process noise covariance is the linear jerk and angular acceleration.
+// The process noise covariance is the following components in order:
+//   -linear jerk
+//   -Linear bias jerk
+//   -Angular acceleration
+//   -Angular bias acceleration
+//   -Gravity angular acceleration
 class SixDRates : public NonlinearSystemModel {
   public:
     // Constructor

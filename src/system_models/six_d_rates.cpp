@@ -9,7 +9,7 @@ namespace system_models {
 using namespace six_d_rates;
 
 SixDRates::SixDRates(bool compute_jacobian, bool update_covariance)
-    : NonlinearSystemModel::NonlinearSystemModel(state::DIMS, 0, 6, compute_jacobian,
+    : NonlinearSystemModel::NonlinearSystemModel(state::DIMS, 0, 15, compute_jacobian,
                                                  update_covariance) {
     // Diagonal entries of Jacobian will be 1
     G_ = Eigen::MatrixXd::Identity(G_.rows(), G_.cols());
@@ -68,18 +68,33 @@ void SixDRates::myUpdate(const Eigen::VectorXd& x, const Eigen::VectorXd& u, dou
         P_(state::VY, 1) = 0.5 * dt_sq;
         P_(state::VZ, 2) = 0.5 * dt_sq;
 
+        // Linear velocity wrt linear bias jerk
+        P_(state::VX, 3) = 0.5 * dt_sq;
+        P_(state::VY, 4) = 0.5 * dt_sq;
+        P_(state::VZ, 5) = 0.5 * dt_sq;
+
         // Linear acceleration wrt linear jerk
         P_(state::AX, 0) = dt;
         P_(state::AY, 1) = dt;
         P_(state::AZ, 2) = dt;
 
+        // Linear acceleration wrt linear bias jerk
+        P_(state::AX, 3) = dt;
+        P_(state::AY, 4) = dt;
+        P_(state::AZ, 5) = dt;
+
         // Angular velocity wrt angular acceleration
-        P_(state::VPHI, 3) = dt;
-        P_(state::VTHETA, 4) = dt;
-        P_(state::VPSI, 5) = dt;
+        P_(state::VPHI, 6) = dt;
+        P_(state::VTHETA, 7) = dt;
+        P_(state::VPSI, 8) = dt;
+
+        // Angular velocity wrt angular bias acceleration
+        P_(state::VPHI, 9) = dt;
+        P_(state::VTHETA, 10) = dt;
+        P_(state::VPSI, 11) = dt;
 
         // Gravity wrt angular acceleration
-        P_.block<3, 3>(state::GX, 3) =
+        P_.block<3, 3>(state::GX, 12) =
             0.5 * pow(dt, 2) *
             (-q_delta.w() * skew(g_i) + dt * (w_i * g_i.transpose() + w_i.transpose() * g_i * I3) -
              0.5 * dt * w_i * g_i.transpose());
