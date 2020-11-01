@@ -49,11 +49,6 @@ class FilterModel {
     // @param active_states: Which state variables to update (empty updates all variables)
     void setActiveStates(const std::vector<uint16_t>& active_states);
 
-    // setCheckStationary
-    //
-    // @param check: When true, the system will be checked for being stationary on each update
-    void setCheckStationary(bool check);
-
     // checkStationary
     //
     // @return: True when this model will evaluate the input to check for stationary conditions
@@ -140,8 +135,6 @@ class FilterModel {
     std::vector<uint16_t> active_states_;
     // A bit field of which states are used (0=not used)
     std::vector<uint8_t> state_usage_;
-    // If checks should be performed for determining if the system is stationary
-    bool check_stationary_;
     // Transformation for control/measurement inputs
     Eigen::Isometry3d tf_;
     // Flag for if a non identity transformation has been provided

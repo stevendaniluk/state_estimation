@@ -7,7 +7,6 @@ namespace state_estimation {
 FilterModel::FilterModel(uint16_t n)
     : state_dims_(n)
     , state_usage_(n, 0)
-    , check_stationary_(false)
     , tf_(Eigen::Isometry3d::Identity())
     , tf_set_(false) {
     setActiveStates({});
@@ -61,12 +60,8 @@ void FilterModel::setActiveStates(const std::vector<uint16_t>& active_states) {
     std::sort(active_states_.begin(), active_states_.end());
 }
 
-void FilterModel::setCheckStationary(bool check) {
-    check_stationary_ = check;
-}
-
 bool FilterModel::checkStationary() {
-    return check_stationary_ && is_stationary_f_ && make_stationary_f_;
+    return (bool)is_stationary_f_;
 }
 
 bool FilterModel::isStationary(const Eigen::VectorXd& x, const Eigen::VectorXd& data) const {
@@ -74,7 +69,9 @@ bool FilterModel::isStationary(const Eigen::VectorXd& x, const Eigen::VectorXd& 
 }
 
 void FilterModel::makeStationary(Eigen::VectorXd* x, Eigen::MatrixXd* cov) const {
-    make_stationary_f_(x, cov);
+    if (make_stationary_f_) {
+        make_stationary_f_(x, cov);
+    }
 }
 
 void FilterModel::setIsStationaryFunction(

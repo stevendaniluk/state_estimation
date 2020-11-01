@@ -371,7 +371,6 @@ TEST_F(FilterBaseTest, PredictSkippedWhenStationary) {
 
     system_model.setIsStationaryFunction(isStationary);
     system_model.setMakeStationaryFunction(makeStationary);
-    system_model.setCheckStationary(true);
 
     Eigen::VectorXd x_stationary;
     Eigen::MatrixXd cov_stationary;
@@ -418,7 +417,6 @@ TEST_F(FilterBaseTest, CorrectSkippedWhenStationary) {
 
     meas_model.setIsStationaryFunction(isStationary);
     meas_model.setMakeStationaryFunction(makeStationary);
-    meas_model.setCheckStationary(true);
 
     Eigen::VectorXd x_stationary;
     Eigen::MatrixXd cov_stationary;
