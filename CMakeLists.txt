@@ -34,9 +34,18 @@ add_library(state_estimation
     ${SOURCE_FILES}
 )
 
+add_executable(six_d_rates_example
+  examples/six_d_rates_example.cpp
+  examples/data_io.cpp
+)
+target_link_libraries(six_d_rates_example
+  state_estimation
+)
+
 # Install the state estimation library and header files
 install(TARGETS
   state_estimation
+  six_d_rates_example
   DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
 )
 install(DIRECTORY

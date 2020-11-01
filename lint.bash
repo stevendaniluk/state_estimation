@@ -2,6 +2,7 @@
 
 # All the folders we want to lint
 folders=(
+    examples
     include/state_estimation/definitions
     include/state_estimation/filters
     include/state_estimation/measurement_models
