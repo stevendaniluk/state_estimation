@@ -4,7 +4,8 @@
 namespace state_estimation {
 namespace planar_2d {
 
-Eigen::VectorXd addState(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs, const std::vector<uint8_t>& usage) {
+Eigen::VectorXd addState(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs,
+                         const std::vector<uint8_t>& usage) {
     // TODO: Account for usage
     Eigen::VectorXd result = lhs + rhs;
     result(state::PSI) = constrainAngle(result(state::PSI));
@@ -12,7 +13,8 @@ Eigen::VectorXd addState(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs,
     return result;
 }
 
-Eigen::VectorXd subtractState(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs, const std::vector<uint8_t>& usage) {
+Eigen::VectorXd subtractState(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs,
+                              const std::vector<uint8_t>& usage) {
     // TODO: Account for usage
     Eigen::VectorXd result = lhs - rhs;
     result(state::PSI) = angleDifference(lhs(state::PSI), rhs(state::PSI));
@@ -20,7 +22,8 @@ Eigen::VectorXd subtractState(const Eigen::VectorXd& lhs, const Eigen::VectorXd&
     return result;
 }
 
-Eigen::VectorXd weightedSumOfStates(const Eigen::VectorXd& w, const Eigen::MatrixXd& X, const std::vector<uint8_t>& usage) {
+Eigen::VectorXd weightedSumOfStates(const Eigen::VectorXd& w, const Eigen::MatrixXd& X,
+                                    const std::vector<uint8_t>& usage) {
     // TODO: Account for usage
     assert(w.size() == X.cols());
 
@@ -35,5 +38,5 @@ Eigen::VectorXd weightedSumOfStates(const Eigen::VectorXd& w, const Eigen::Matri
     return X_sum;
 }
 
-}// end planar_2d namespace
-} // end state_estimation namespace
+}  // namespace planar_2d
+}  // namespace state_estimation

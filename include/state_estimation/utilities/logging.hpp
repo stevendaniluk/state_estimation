@@ -8,7 +8,7 @@ std::string printMatrix(const Eigen::Matrix<Real, M, N>& mat) {
     std::ostringstream stream;
     if (mat.cols() == 1) {
         stream << mat.transpose().format(Eigen::IOFormat(6, 0, ", ", "\n", "[", "]"));
-    }else {
+    } else {
         stream << mat.format(Eigen::IOFormat(6, 0, ", ", "\n", "[", "]"));
     }
     return stream.str();

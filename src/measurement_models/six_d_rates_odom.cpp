@@ -18,7 +18,8 @@ SixDRatesOdom::SixDRatesOdom(bool compute_jacobian)
 void SixDRatesOdom::myUpdate(const Eigen::VectorXd& x, double dt) {
     z_pred_.segment(meas::odom::VX, 3) =
         transformLinearVelocity(x.segment(state::VX, 3), x.segment(state::VPHI, 3), tf_);
-    z_pred_(meas::odom::VPSI) = transformAngularVelocity(x.segment(state::VPHI, 3), tf_.linear()).z();
+    z_pred_(meas::odom::VPSI) =
+        transformAngularVelocity(x.segment(state::VPHI, 3), tf_.linear()).z();
 
     // Jacobian doesn't change with time
 }

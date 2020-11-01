@@ -7,6 +7,7 @@ folders=(
     include/state_estimation/measurement_models
     include/state_estimation/system_models
     include/state_estimation/utilities
+    src/definitions
     src/filters
     src/measurement_models
     src/system_models

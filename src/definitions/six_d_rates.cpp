@@ -32,5 +32,5 @@ Eigen::VectorXd weightedSumOfStates(const Eigen::VectorXd& w, const Eigen::Matri
     return X_sum;
 }
 
-}// end six_d_rates namespace
-} // end state_estimation namespace
+}  // namespace six_d_rates
+}  // namespace state_estimation

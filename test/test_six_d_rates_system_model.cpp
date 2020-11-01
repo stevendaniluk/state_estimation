@@ -24,7 +24,7 @@ TEST(SixDRates, VelocityIntegration) {
     EXPECT_FLOAT_EQ(v_target.z(), model.g()(state::VZ));
 }
 
-TEST(SixDOmniAccel, JacobianMatchesNumericalApproximation) {
+TEST(SixDRates, JacobianMatchesNumericalApproximation) {
     system_models::SixDRates model;
     double dt = 0.01;
     Eigen::VectorXd x(state::DIMS);
@@ -40,7 +40,7 @@ TEST(SixDOmniAccel, JacobianMatchesNumericalApproximation) {
     jacobianMatchesNumericalApproximation(&model, x, u, dt);
 }
 
-TEST(SixDOmniAccel, InactiveStatesDoNotChange) {
+TEST(SixDRates, InactiveStatesDoNotChange) {
     system_models::SixDRates model;
     double dt = 0.2;
     Eigen::VectorXd x = Eigen::VectorXd::Random(state::DIMS);
