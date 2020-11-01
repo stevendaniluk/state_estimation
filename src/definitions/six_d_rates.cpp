@@ -4,20 +4,29 @@
 namespace state_estimation {
 namespace six_d_rates {
 
-Eigen::VectorXd addState(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs, const std::vector<uint8_t>& usage) {
-    return lhs + rhs;
+Eigen::VectorXd addState(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs,
+                         const std::vector<uint8_t>& usage) {
+    Eigen::VectorXd result = lhs + rhs;
+    result.segment(state::GX, 3) = 9.8062 * result.segment(state::GX, 3).normalized();
+    return result;
 }
 
-Eigen::VectorXd subtractState(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs, const std::vector<uint8_t>& usage) {
-    return lhs - rhs;
+Eigen::VectorXd subtractState(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs,
+                              const std::vector<uint8_t>& usage) {
+    Eigen::VectorXd result = lhs - rhs;
+    result.segment(state::GX, 3) = 9.8062 * result.segment(state::GX, 3).normalized();
+    return result;
 }
 
-Eigen::VectorXd weightedSumOfStates(const Eigen::VectorXd& w, const Eigen::MatrixXd& X, const std::vector<uint8_t>& usage) {
+Eigen::VectorXd weightedSumOfStates(const Eigen::VectorXd& w, const Eigen::MatrixXd& X,
+                                    const std::vector<uint8_t>& usage) {
     assert(w.size() == X.cols());
 
     Eigen::VectorXd X_sum = Eigen::VectorXd::Zero(X.rows());
     for (size_t i = 0; i < w.size(); ++i) {
-        X_sum += w(i) * X.col(i);
+        Eigen::VectorXd delta = w(i) * X.col(i);
+        delta.segment(state::GX, 3) = 9.8062 * delta.segment(state::GX, 3).normalized();
+        X_sum += delta;
     }
 
     return X_sum;
