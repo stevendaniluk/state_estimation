@@ -91,7 +91,9 @@ if(BUILD_TESTING MATCHES ON)
   foreach(target ${TEST_TARGETS})
     add_executable(${target} test/${target}.cpp)
     target_link_libraries(${target}
+      gtest
       gtest_main
+      pthread
       state_estimation
     )
     gtest_discover_tests(${target})
