@@ -58,7 +58,7 @@ template <typename SysT, typename MeasT>
 void FilterBase<SysT, MeasT>::predict(double timestamp) {
     // No need to apply a prediction if the timestamp is the same
     if (timestamp > filter_state_.timestamp) {
-        const FilterInput input(Eigen::VectorXd(), Eigen::MatrixXd(), timestamp, true);
+        const FilterInput input(Eigen::VectorXd(), system_model_->Rc(), timestamp, true);
         applyInput(input);
         pruneHistory();
     }
@@ -76,7 +76,7 @@ void FilterBase<SysT, MeasT>::predict(const Eigen::VectorXd& u, double timestamp
         // Will still want to enable applying a prediction for a zero dt so that so that any
         // possible control updates can occur
         if (timestamp >= filter_state_.timestamp) {
-            const FilterInput input(u, Eigen::MatrixXd(), timestamp, true);
+            const FilterInput input(u, system_model_->Rc(), timestamp, true);
             applyInput(input);
             pruneHistory();
         }
@@ -95,7 +95,7 @@ void FilterBase<SysT, MeasT>::predict(const Eigen::VectorXd& u, double timestamp
         // The covariance for controls will be determined by the system model at the time the
         // control is processed since it may be a function of the state, so we'll provide a dummy
         // matrix
-        inputs.emplace_back(u, Eigen::MatrixXd(), timestamp, true);
+        inputs.emplace_back(u, system_model_->Rc(), timestamp, true);
 
         std::vector<FilterState> prev_states;
         if (timestamp < filter_state_.timestamp && !rewindHistory(timestamp, &prev_states)) {
@@ -157,7 +157,7 @@ template <typename SysT, typename MeasT>
 void FilterBase<SysT, MeasT>::enqueuControl(const Eigen::VectorXd& u, double timestamp) {
     // The covariance for controls will be determed by the system model at the time the control is
     // processed since it may be a function of the state, so we'll provide a dummy matrix
-    control_queue_.emplace_back(u, Eigen::MatrixXd(), timestamp, true);
+    control_queue_.emplace_back(u, system_model_->Rc(), timestamp, true);
 }
 
 template <typename SysT, typename MeasT>
@@ -333,13 +333,20 @@ void FilterBase<SysT, MeasT>::applyControlInput(const FilterInput& input) {
 
     // Need to determine what control input to use
     Eigen::VectorXd u;
+    Eigen::MatrixXd cov;
     if (input.data.size() > 0) {
         u = input.data;
+        cov = input.covariance;
+
         prev_control_ = u;
+        prev_control_covariance_ = input.covariance;
     } else if (prev_control_.size() > 0) {
         u = prev_control_;
+        cov = prev_control_covariance_;
     } else {
+        // Have not had any control inputs yet
         u = Eigen::VectorXd::Zero(system_model_->controlSize());
+        cov = system_model_->Rc();
     }
 
     if (!(system_model_->checkStationary() &&
@@ -349,11 +356,13 @@ void FilterBase<SysT, MeasT>::applyControlInput(const FilterInput& input) {
                   << "t=" << std::to_string(input.timestamp) << "s (dt=" << std::to_string(dt)
                   << ")" << std::endl
                   << "u=" << printMatrix(u) << std::endl
+                  << "u covariance=" << printMatrix(cov) << std::endl
                   << "x=" << printMatrix(filter_state_.x) << std::endl
                   << "covariance=" << std::endl
                   << printMatrix(filter_state_.covariance) << std::endl;
 #endif
 
+        system_model_->setControlCovariance(cov);
         myPredict(u, dt);
     } else {
         system_model_->processStationaryInput(filter_state_.x, input.data);
@@ -372,7 +381,7 @@ void FilterBase<SysT, MeasT>::applyMeasurementInput(const FilterInput& input) {
         std::cout << "Advancing state x=" << printMatrix(filter_state_.x) << " by " << dt
                   << "s before applying correction" << std::endl;
 #endif
-        FilterInput advance_input(prev_control_, Eigen::MatrixXd(), input.timestamp, true);
+        FilterInput advance_input(prev_control_, prev_control_covariance_, input.timestamp, true);
         applyControlInput(advance_input);
 
         filter_state_.timestamp += dt;

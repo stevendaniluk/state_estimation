@@ -244,6 +244,7 @@ class FilterBase {
     FilterState filter_state_;
     // The last control input applied
     Eigen::VectorXd prev_control_;
+    Eigen::MatrixXd prev_control_covariance_;
     // Model describing the system dynamics
     SysT* system_model_;
 
