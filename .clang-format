@@ -10,6 +10,7 @@ BreakConstructorInitializersBeforeComma: 'true'
 ColumnLimit: '100'
 ConstructorInitializerAllOnOneLineOrOnePerLine: 'false'
 Cpp11BracedListStyle: true
+IncludeBlocks: Merge
 IndentWidth: '4'
 Language: Cpp
 SpaceBeforeParens: ControlStatements
