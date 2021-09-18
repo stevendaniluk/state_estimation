@@ -1,5 +1,4 @@
 #include <state_estimation/utilities/integration.h>
-
 #include <iostream>
 
 namespace state_estimation {
@@ -60,9 +59,10 @@ void integratePositionRK4(double dt, Eigen::Vector3d v_i, const Eigen::Vector3d&
     // k2 is equal to k3 for this case, so we won't compute k3
     const Eigen::Vector3d k1_p = v_i;
     const Eigen::Vector3d k2_p = q_mid * (v_i + 0.5 * dt * k1_v);
+    const Eigen::Vector3d k3_p = q_mid * (v_i + 0.5 * dt * k2_v);
     const Eigen::Vector3d k4_p = q_end * (v_i + dt * k3_v);
     Eigen::Vector3d p0 = *p;
-    (*p) += dt * (k1_p + 4 * k2_p + k4_p) / 6;
+    (*p) += dt * (k1_p + 2 * k2_p + 2 * k3_p + k4_p) / 6;
 }
 
 }  // namespace state_estimation

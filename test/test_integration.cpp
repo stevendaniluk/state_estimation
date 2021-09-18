@@ -267,7 +267,7 @@ TEST(Integration, AcceleratingCirclePositionIntegration) {
     getCircleAccelerationProfile(vi, a, dt, n, r, &p_ref, &v_ref, &w_ref, &a_ref, &t_ref);
 
     // Make sure the absolute positionis within some error percentage
-    double epsilon = 0.05;
+    double epsilon = 0.01;
     Eigen::Vector3d p = p_ref[0];
     Eigen::Vector3d v = v_ref[0];
     for (int i = 0; i < v_ref.size() - 1; ++i) {
