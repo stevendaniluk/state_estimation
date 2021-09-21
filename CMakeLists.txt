@@ -33,6 +33,10 @@ file(GLOB SOURCE_FILES
 add_library(state_estimation
     ${SOURCE_FILES}
 )
+target_include_directories(state_estimation
+  PUBLIC
+  include
+)
 
 add_executable(six_d_rates_example
   examples/six_d_rates_example.cpp

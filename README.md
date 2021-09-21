@@ -89,7 +89,7 @@ project(state_estimation)
 add_subdirectory(state_estimation)
 
 catkin_package(
-  INCLUDE_DIRS state_estimation/include
+  INCLUDE_DIRS ${STATE_ESTIMATION_INCLUDE_DIRS}
   LIBRARIES state_estimation
 )
 ```
