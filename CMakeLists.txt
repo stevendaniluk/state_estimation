@@ -36,6 +36,7 @@ add_library(state_estimation
 target_include_directories(state_estimation
   PUBLIC
   include
+  test/utilities
 )
 
 add_executable(six_d_rates_example
@@ -99,6 +100,10 @@ if(BUILD_TESTING MATCHES ON)
       gtest_main
       pthread
       state_estimation
+    )
+    target_include_directories(${target}
+      PUBLIC
+      test/utilities
     )
     gtest_discover_tests(${target})
   endforeach()
