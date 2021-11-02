@@ -18,7 +18,7 @@ namespace state_estimation {
 // @param epsilon: Amount to perturb the state variables by
 // @param tolerance: Tolerance on the Frobenius norm between the numerically determine Jacobian and
 //                   the output of the system model
-void jacobianMatchesNumericalApproximation(system_models::NonlinearSystemModel* model,
+void jacobianGMatchesNumericalApproximation(system_models::NonlinearSystemModel* model,
                                            const Eigen::VectorXd& x, const Eigen::VectorXd& u,
                                            double dt, double epsilon = 1e-6,
                                            double tolerance = 1e-3) {
@@ -45,6 +45,47 @@ void jacobianMatchesNumericalApproximation(system_models::NonlinearSystemModel* 
                                                      << printMatrix(G_target) << std::endl
                                                      << "Actual:" << std::endl
                                                      << printMatrix(G_num);
+}
+
+// jacobianVMatchesNumericalApproximation
+//
+// Compares the Jacobian V produced by the system model to a numerical estimate formed by perturbing
+// the state
+//
+// @param model: Model to evaluate
+// @param x: State to evaluate the Jacobian about
+// @param u: Control to evaluate the Jacobian about
+// @param dt: Time step to use in the model update
+// @param epsilon: Amount to perturb the state variables by
+// @param tolerance: Tolerance on the Frobenius norm between the numerically determine Jacobian and
+//                   the output of the system model
+void jacobianVMatchesNumericalApproximation(system_models::NonlinearSystemModel* model,
+                                           const Eigen::VectorXd& x, const Eigen::VectorXd& u,
+                                           double dt, double epsilon = 1e-6,
+                                           double tolerance = 1e-3) {
+    // Run our reference state through a model, then numerically compute the Jacobian by going
+    // through each state variable perturbing it slightly.
+    model->update(x, u, dt);
+    Eigen::VectorXd x_pred = model->g();
+    Eigen::MatrixXd V_target = model->V();
+
+    Eigen::MatrixXd V_num(x.size(), x.size());
+    for (int i = 0; i < x.size(); ++i) {
+        // Perturb the control slightly
+        Eigen::VectorXd u_pert = u;
+        u_pert(i) += epsilon;
+
+        // Run the new state through the model
+        model->update(x, u_pert, dt);
+
+        // Compute the partial derivative
+        V_num.col(i) = (model->g() - x_pred) / epsilon;
+    }
+
+    EXPECT_TRUE(V_num.isApprox(V_target, tolerance)) << "Target:" << std::endl
+                                                     << printMatrix(V_target) << std::endl
+                                                     << "Actual:" << std::endl
+                                                     << printMatrix(V_num);
 }
 
 // jacobianMatchesNumericalApproximation

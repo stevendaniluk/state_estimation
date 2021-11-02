@@ -37,7 +37,7 @@ TEST(SixDRates, JacobianMatchesNumericalApproximation) {
 
     Eigen::VectorXd u(0);
 
-    jacobianMatchesNumericalApproximation(&model, x, u, dt);
+    jacobianGMatchesNumericalApproximation(&model, x, u, dt);
 }
 
 TEST(SixDRates, InactiveStatesDoNotChange) {
