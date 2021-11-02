@@ -77,35 +77,35 @@ if(BUILD_TESTING MATCHES ON)
 
   # Define all the tests we want to build, the loop below will create them all
   set(TEST_TARGETS
-    test_angle_utilities
-    test_transformation_utilities
-    test_imu_utilities
-    test_integration
-    test_filter_base
-    test_kalman_filter
-    test_kalman_filter_vs
-    test_ekf
-    test_ekf_vs
-    test_ukf
-    test_ukf_vs
-    test_six_d_rates_imu_meas_model
-    test_six_d_rates_odom_meas_model
-    test_six_d_rates_system_model
+    angle_utilities
+    transformation_utilities
+    imu_utilities
+    integration
+    filter_base
+    kalman_filter
+    kalman_filter_vs
+    ekf
+    ekf_vs
+    ukf
+    ukf_vs
+    six_d_rates_imu_meas_model
+    six_d_rates_odom_meas_model
+    six_d_rates_system_model
   )
 
   foreach(target ${TEST_TARGETS})
-    add_executable(${target} test/${target}.cpp)
-    target_link_libraries(${target}
+    add_executable(test_se_${target} test/test_${target}.cpp)
+    target_link_libraries(test_se_${target}
       gtest
       gtest_main
       pthread
       state_estimation
     )
-    target_include_directories(${target}
+    target_include_directories(test_se_${target}
       PUBLIC
       test/utilities
     )
-    gtest_discover_tests(${target})
+    gtest_discover_tests(test_se_${target})
   endforeach()
 
 endif()
