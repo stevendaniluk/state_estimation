@@ -69,8 +69,8 @@ void jacobianVMatchesNumericalApproximation(system_models::NonlinearSystemModel*
     Eigen::VectorXd x_pred = model->g();
     Eigen::MatrixXd V_target = model->V();
 
-    Eigen::MatrixXd V_num(x.size(), x.size());
-    for (int i = 0; i < x.size(); ++i) {
+    Eigen::MatrixXd V_num(x.size(), u.size());
+    for (int i = 0; i < u.size(); ++i) {
         // Perturb the control slightly
         Eigen::VectorXd u_pert = u;
         u_pert(i) += epsilon;
